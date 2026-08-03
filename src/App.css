@@ -2829,3 +2829,534 @@ body.booking-modal-open #root {
 }
 
 
+
+/* ============================================================
+   COMPREHENSIVE RESPONSIVE SYSTEM — MOBILE & TABLET ONLY
+   Desktop styles (1280px+) are completely untouched.
+   All rules below are scoped inside max-width media queries.
+   ============================================================ */
+
+/* ─────────────────────────────────────────────────────────────
+   PREVENT HORIZONTAL OVERFLOW GLOBALLY
+   ───────────────────────────────────────────────────────────── */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+*, *::before, *::after {
+  max-width: 100%;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   TABLET (≤ 1024px)
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Navbar */
+  .apple-nav-pill {
+    width: min(960px, 94vw);
+    height: 60px;
+  }
+  .apple-logo-wrap img {
+    height: 40px;
+  }
+
+  /* Hero */
+  .apple-hero {
+    padding-top: 130px;
+    padding-bottom: 60px;
+  }
+  .apple-hero-title {
+    font-size: clamp(32px, 5vw, 68px);
+  }
+  .apple-hero-stage {
+    max-width: 100%;
+    padding: 0 clamp(16px, 3vw, 32px);
+  }
+
+  /* Quick Actions - 3 columns on tablet */
+  .apple-quick-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* About: already handled by 900px breakpoint below */
+
+  /* Treatments banner */
+  .apple-treatments-featured-banner {
+    min-height: 360px;
+  }
+
+  /* Gallery: 2 columns on tablet */
+  .apple-gallery-masonry {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .apple-gallery-item.large {
+    grid-column: span 1;
+    aspect-ratio: 4/3;
+  }
+
+  /* Footer CTA strip */
+  .apple-footer-cta-strip {
+    padding: 36px 32px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SMALL TABLET / LARGE PHONE (≤ 768px)
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Navbar */
+  .apple-nav-pill {
+    width: calc(100vw - 24px);
+    height: 56px;
+    padding: 0 12px 0 16px;
+    top: 12px;
+  }
+  .apple-nav-wrapper {
+    top: 12px;
+  }
+  .apple-logo-wrap img {
+    height: 36px;
+  }
+  .apple-nav-links {
+    display: none;
+  }
+  .apple-mobile-toggle {
+    display: flex;
+  }
+  .apple-nav-cta {
+    display: none; /* hidden; Book button inside drawer */
+  }
+
+  /* Hero */
+  .apple-hero {
+    min-height: auto;
+    padding-top: 96px;
+    padding-bottom: 48px;
+  }
+  .apple-hero-title {
+    font-size: clamp(28px, 7.5vw, 44px);
+    letter-spacing: -0.03em;
+  }
+  .apple-hero-subtitle {
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    padding: 0 8px;
+    margin-bottom: 24px;
+  }
+  .apple-hero-ctas {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .apple-hero-ctas .apple-pill-btn,
+  .apple-hero-ctas .btn-apple-primary,
+  .apple-hero-ctas .btn-apple-glass {
+    width: 100%;
+    justify-content: center;
+  }
+  .apple-hero-float-card {
+    display: none;
+  }
+  .apple-hero-main-card {
+    aspect-ratio: 4/3;
+    border-radius: var(--r-xl);
+  }
+  .apple-hero-stage {
+    padding: 0 clamp(12px, 3vw, 24px);
+  }
+
+  /* Quick Actions: 2 columns */
+  .apple-quick-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .apple-quick-tile {
+    padding: 22px 18px;
+  }
+
+  /* About: image above text */
+  .apple-about-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .apple-about-visual-stage {
+    order: -1;
+  }
+  .apple-about-glass-badge {
+    position: relative;
+    bottom: auto;
+    right: auto;
+    margin-top: 20px;
+    max-width: 100%;
+    border-radius: var(--r-xl);
+  }
+
+  /* Treatments */
+  .apple-treatments-featured-banner {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .apple-tf-right {
+    height: 220px;
+  }
+  .apple-treatment-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Why Choose Us */
+  .apple-why-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Gallery */
+  .apple-gallery-masonry {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .apple-gallery-item.large {
+    grid-column: span 2;
+    aspect-ratio: 16/10;
+  }
+  .apple-gallery-filters {
+    gap: 6px;
+  }
+  .apple-gallery-filter-pill {
+    font-size: 0.8rem;
+    padding: 8px 16px;
+  }
+
+  /* Testimonials */
+  .apple-testimonial-glass-card {
+    padding: 32px 24px;
+  }
+  .apple-testimonial-quote {
+    font-size: clamp(1rem, 3.5vw, 1.2rem);
+  }
+
+  /* Contact */
+  .apple-contact-split-v2 {
+    grid-template-columns: 1fr;
+  }
+  .apple-contact-right-card-v2 {
+    padding: 28px 24px;
+  }
+  .apple-contact-left-card-v2 {
+    padding: 28px 24px;
+  }
+
+  /* Footer */
+  .apple-footer {
+    padding: 72px 0 40px;
+  }
+  .apple-footer-cta-strip {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    padding: 32px 24px;
+    border-radius: 24px;
+  }
+  .apple-footer-cta-actions {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+  }
+  .apple-footer-cta-actions .apple-pill-btn,
+  .apple-footer-cta-actions button,
+  .apple-footer-cta-actions a {
+    width: 100%;
+    justify-content: center;
+  }
+  .apple-footer-panel {
+    padding: 36px 24px 28px;
+    border-radius: 28px;
+  }
+  .apple-footer-v2-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  /* AI Floating Button safe area */
+  .ai-launcher-btn {
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 20px !important;
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  /* h2 headings */
+  .apple-h2 {
+    font-size: clamp(28px, 7vw, 44px);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PHONE (≤ 480px)
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  /* Navbar */
+  .apple-nav-pill {
+    width: calc(100vw - 16px);
+    height: 52px;
+    padding: 0 10px 0 14px;
+    border-radius: 18px;
+  }
+  .apple-logo-wrap img {
+    height: 34px;
+  }
+
+  /* Hero */
+  .apple-hero {
+    padding-top: 88px;
+    padding-bottom: 36px;
+  }
+  .apple-hero-title {
+    font-size: clamp(26px, 8vw, 36px);
+    line-height: 1.1;
+  }
+  .apple-hero-subtitle {
+    font-size: 0.9rem;
+    padding: 0 4px;
+  }
+  .apple-hero-ctas {
+    max-width: 100%;
+    padding: 0 4px;
+  }
+  .apple-hero-main-card {
+    aspect-ratio: 3/2;
+    border-radius: var(--r-lg);
+  }
+
+  /* Quick Actions: 1 column on small phones */
+  .apple-quick-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .apple-quick-tile {
+    padding: 18px 16px;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* About */
+  .apple-about-desc {
+    font-size: 1rem;
+  }
+
+  /* Treatments: 1 column on small phones */
+  .apple-treatment-grid {
+    grid-template-columns: 1fr;
+  }
+  .apple-treatment-glass-card {
+    padding: 24px 20px;
+  }
+  .apple-tf-right {
+    height: 180px;
+  }
+  .apple-tf-left {
+    padding: 28px 24px;
+  }
+
+  /* Why Choose Us: 1 column */
+  .apple-why-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Gallery: 1 column on small phones, 2 on larger */
+  .apple-gallery-masonry {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .apple-gallery-item.large {
+    grid-column: span 1;
+    aspect-ratio: 16/10;
+  }
+
+  /* Testimonials */
+  .apple-testimonial-glass-card {
+    padding: 28px 18px;
+    border-radius: var(--r-xl);
+  }
+  .apple-testimonial-quote {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+  .apple-testimonial-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+
+  /* Contact */
+  .apple-contact-input-row {
+    grid-template-columns: 1fr;
+  }
+  .apple-contact-left-actions {
+    grid-template-columns: 1fr;
+  }
+  .apple-contact-left-actions .full-btn {
+    grid-column: span 1;
+  }
+  .apple-contact-left-card-v2,
+  .apple-contact-right-card-v2 {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+  .apple-contact-map-section-v2 {
+    height: 320px;
+    border-radius: 20px;
+  }
+  .apple-contact-map-overlay-card {
+    max-width: calc(100% - 24px);
+    padding: 16px 18px;
+  }
+
+  /* Footer */
+  .apple-footer {
+    padding: 60px 0 32px;
+  }
+  .apple-footer-cta-strip {
+    padding: 28px 18px;
+    border-radius: 20px;
+  }
+  .apple-footer-panel {
+    padding: 28px 18px 24px;
+    border-radius: 20px;
+  }
+  .apple-footer-v2-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .apple-footer-brand-logo-v2 img {
+    height: 44px;
+  }
+  .apple-footer-v2-bottom {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  .apple-footer-bottom-links-v2 {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* h2 headings */
+  .apple-h2 {
+    font-size: clamp(24px, 8vw, 38px);
+  }
+
+  /* AI launcher - smaller on phone */
+  .ai-launcher-btn {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 16px !important;
+    width: 52px !important;
+    height: 52px !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SMALL PHONE (≤ 390px)
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 390px) {
+  .apple-nav-pill {
+    height: 50px;
+    padding: 0 8px 0 12px;
+    border-radius: 16px;
+  }
+  .apple-logo-wrap img {
+    height: 32px;
+  }
+  .apple-hero-title {
+    font-size: clamp(24px, 8.5vw, 32px);
+  }
+  .apple-hero-subtitle {
+    font-size: 0.875rem;
+  }
+  .apple-hero-main-card {
+    aspect-ratio: 1/1;
+    border-radius: var(--r-lg);
+  }
+  .apple-h2 {
+    font-size: clamp(22px, 8vw, 34px);
+  }
+  .apple-tf-right {
+    height: 150px;
+  }
+  .apple-contact-map-section-v2 {
+    height: 280px;
+  }
+  .apple-gallery-masonry {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .apple-gallery-item.large {
+    grid-column: span 1;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   VERY SMALL PHONE (≤ 320px)
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 320px) {
+  .apple-nav-pill {
+    height: 48px;
+    border-radius: 14px;
+    padding: 0 8px 0 10px;
+  }
+  .apple-logo-wrap img {
+    height: 28px;
+  }
+  .apple-hero {
+    padding-top: 76px;
+  }
+  .apple-hero-title {
+    font-size: clamp(22px, 9vw, 28px);
+  }
+  .apple-hero-subtitle {
+    font-size: 0.82rem;
+  }
+  .apple-h2 {
+    font-size: clamp(20px, 8vw, 28px);
+  }
+  .apple-treatment-glass-card {
+    padding: 20px 16px;
+  }
+  .apple-about-pill-item {
+    padding: 12px 14px;
+  }
+  .apple-footer-panel {
+    padding: 24px 14px 20px;
+  }
+  .apple-footer-cta-strip {
+    padding: 24px 14px;
+  }
+  .apple-contact-left-card-v2,
+  .apple-contact-right-card-v2 {
+    padding: 20px 14px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   TOUCH DEVICE HOVER OVERRIDE
+   Remove :hover transforms on touch to avoid sticky states
+   ───────────────────────────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  .apple-quick-tile:hover,
+  .apple-treatment-glass-card:hover,
+  .apple-why-card:hover,
+  .apple-gallery-item:hover img,
+  .apple-hero-float-card:hover,
+  .apple-footer-info-glass-card:hover,
+  .apple-contact-mini-glass-card:hover {
+    transform: none;
+  }
+  .apple-gallery-item:hover .apple-gallery-overlay {
+    opacity: 0;
+  }
+}
