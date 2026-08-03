@@ -20,8 +20,7 @@ export async function createAppointment(req, res) {
 
     return res.status(500).json({
       success: false,
-      message: 'Unable to send appointment request.',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      message: error.message || 'Unable to send appointment request. Please try again or call us directly.',
     });
   }
 }
