@@ -5,19 +5,15 @@ import {
   Mail,
   Clock,
   Star,
-  Navigation,
   Calendar,
   CheckCircle2,
   X,
   ChevronRight,
   Sparkles,
-  ArrowUpRight,
   ShieldCheck,
   Award,
 } from 'lucide-react';
 import officialLogo from '../assets/logo2.jpg';
-
-const MAPS_LINK = "https://www.google.com/maps/place/Vimal+Eye+Hospital/@18.4017529,76.5646892,17z/data=!4m16!1m9!3m8!1s0x3bcf85802fe200ef:0xb5c36a10647049c0!2sVimal+Eye+Hospital!8m2!3d18.4017301!4d76.5647644!9m1!1b1!16s%2Fg%2F11y30cy60s!3m5!1s0x3bcf85802fe200ef:0xb5c36a10647049c0!8m2!3d18.4017301!4d76.5647644!16s%2Fg%2F11y30cy60s";
 
 const navLinks = [
   { label: 'Home', id: 'hero' },
@@ -35,23 +31,6 @@ function InstagramIcon({ size = 18 }) {
       <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
       <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
       <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-    </svg>
-  );
-}
-
-function FacebookIcon({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
-  );
-}
-
-function YoutubeIcon({ size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
-      <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
     </svg>
   );
 }
@@ -124,47 +103,17 @@ export default function Footer({ onNavigate, onOpenBooking }) {
                 </div>
               </div>
 
-              {/* Glass Circular Social Buttons with 6° Rotate Tilt */}
+              {/* Glass Circular Social Button */}
               <div className="apple-footer-socials-v2">
                 <a
-                  href={MAPS_LINK}
+                  href="https://www.instagram.com/vimaleyehospitallatur/?__pwa=1#"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="apple-social-btn-v2"
-                  title="Google Maps Location Latur"
-                  aria-label="Google Maps Location Latur"
-                >
-                  <Navigation size={18} />
-                </a>
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="apple-social-btn-v2"
-                  title="Instagram Page"
-                  aria-label="Instagram Page"
+                  title="Visit our Instagram"
+                  aria-label="Visit our Instagram"
                 >
                   <InstagramIcon size={18} />
-                </a>
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="apple-social-btn-v2"
-                  title="Facebook Page"
-                  aria-label="Facebook Page"
-                >
-                  <FacebookIcon size={18} />
-                </a>
-                <a
-                  href="https://youtube.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="apple-social-btn-v2"
-                  title="YouTube Channel"
-                  aria-label="YouTube Channel"
-                >
-                  <YoutubeIcon size={18} />
                 </a>
               </div>
             </div>

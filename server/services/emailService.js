@@ -6,16 +6,19 @@ import { generateHospitalEmailSubject, generateHospitalEmailHTML } from '../emai
 import { generatePatientEmailSubject, generatePatientEmailHTML } from '../emails/PatientConfirmationTemplate.js';
 
 // Resend API Key & Email Configuration
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const HOSPITAL_EMAIL = process.env.HOSPITAL_EMAIL || 'pradhumanmali2@gmail.com';
 
 // Standard Resend onboarding domain sender (for testing/development)
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'Vimal Eye Hospital <onboarding@resend.dev>';
 
-const resend = new Resend(RESEND_API_KEY);
-
 export async function sendAppointmentEmails(appointmentData) {
   const { name, phone, email, treatment, date, time, message } = appointmentData;
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY environment variable is not set. Please set it in .env');
+  }
+  const resend = new Resend(apiKey);
 
   // 1. Send Notification Email to Hospital
   const hospitalSubject = generateHospitalEmailSubject();

@@ -4,7 +4,7 @@
  */
 
 export function generateHospitalEmailSubject() {
-  return `📅 New Appointment Request - Vimal Eye Hospital`;
+  return `📅 New Appointment Request`;
 }
 
 export function generateHospitalEmailHTML({ name, phone, email, treatment, date, time, message }) {

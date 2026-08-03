@@ -1,7 +1,10 @@
-/**
- * VIMAL EYE HOSPITAL — BACKEND SERVER ENTRY POINT
- * Express + Resend API Service
- */
+// Load environment variables before importing dependent services
+try {
+  process.loadEnvFile();
+} catch (e) {
+  // .env file optional in production environment
+}
+
 import express from 'express';
 import cors from 'cors';
 import appointmentRoutes from './routes/appointmentRoutes.js';

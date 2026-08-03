@@ -1,0 +1,77 @@
+/**
+ * CONSTANTS FOR AI ASSISTANT & MULTILINGUAL MESSAGES
+ */
+
+export const SUPPORTED_LANGUAGES = [
+  { code: 'en', label: 'English', short: 'EN' },
+  { code: 'hi', label: 'हिंदी', short: 'हि' },
+  { code: 'mr', label: 'मराठी', short: 'म' },
+];
+
+export const SYSTEM_TEXTS = {
+  en: {
+    welcome: "Hello! 👋 I'm the Vimal Eye Hospital AI Assistant. How can I assist your vision care today?",
+    botName: "Vimal Eye Assistant",
+    onlineStatus: "Online • Ready to help",
+    inputPlaceholder: "Type a message or ask a question...",
+    send: "Send",
+    quickActionTitle: "Quick Actions",
+    bookingStarted: "Starting appointment booking. Let's get your details.",
+    enquiryStarted: "Starting enquiry submission. Please provide your details.",
+    missingInfoFallback: "I don't have that exact detail in my system yet. Please call our hospital desk at +91 98765 43210 for immediate assistance.",
+    appointmentSuccess: "🎉 Appointment Request Submitted Successfully!",
+    enquirySuccess: "📩 Enquiry Submitted Successfully!",
+    submitError: "Unable to submit request right now. Please try again or call +91 98765 43210.",
+    retry: "Retry",
+    callUs: "Call Hospital",
+    close: "Close",
+  },
+  hi: {
+    welcome: "नमस्ते! 👋 मैं विमल आई हॉस्पिटल का AI सहायक हूँ। आज मैं आपकी क्या मदद कर सकता हूँ?",
+    botName: "विमल आई असिस्टेंट",
+    onlineStatus: "ऑनलाइन • सहायता के लिए तैयार",
+    inputPlaceholder: "अपना संदेश लिखें या प्रश्न पूछें...",
+    send: "भेजें",
+    quickActionTitle: "त्वरित विकल्प",
+    bookingStarted: "अपॉइंटमेंट बुकिंग शुरू की जा रही है। कृपया अपनी जानकारी दें।",
+    enquiryStarted: "पूछताछ फॉर्म शुरू किया जा रहा है।",
+    missingInfoFallback: "मेरे पास अभी यह विशेष जानकारी उपलब्ध नहीं है। कृपया अस्पताल हेल्पलाइन +91 98765 43210 पर संपर्क करें।",
+    appointmentSuccess: "🎉 आपका अपॉइंटमेंट अनुरोध सफलतापूर्वक प्राप्त हो गया है!",
+    enquirySuccess: "📩 आपकी पूछताछ सफलतापूर्वक भेज दी गई है!",
+    submitError: "अभी अनुरोध सबमिट करने में असमर्थ। कृपया पुनः प्रयास करें या +91 98765 43210 पर कॉल करें।",
+    retry: "पुनः प्रयास करें",
+    callUs: "अस्पताल को कॉल करें",
+    close: "बंद करें",
+  },
+  mr: {
+    welcome: "नमस्कार! 👋 मी विमल आय हॉस्पिटलचा AI सहाय्यक आहे. आज मी तुम्हाला कशी मदत करू शकतो?",
+    botName: "विमल आय असिस्टंट",
+    onlineStatus: "ऑनलाइन • मदतीसाठी तयार",
+    inputPlaceholder: "तुमचा संदेश लिहा किंवा प्रश्न विचारा...",
+    send: "पाठवा",
+    quickActionTitle: "जलद पर्याय",
+    bookingStarted: "अपॉइंटमेंट बुकिंग सुरू करत आहोत. कृपया तुमची माहिती द्या.",
+    enquiryStarted: "चौकशी फॉर्म सुरू करत आहोत.",
+    missingInfoFallback: "माझ्याकडे सध्या ही माहिती उपलब्ध नाही. कृपया रुग्णालय हेल्पलाइन +91 98765 43210 वर संपर्क साधा.",
+    appointmentSuccess: "🎉 तुमचा अपॉइंटमेंट अर्ज यशस्वीरीत्या सबमिट झाला आहे!",
+    enquirySuccess: "📩 तुमची चौकशी यशस्वीरीत्या पाठवली गेली आहे!",
+    submitError: "सध्या अर्ज सबमिट करता आला नाही. कृपया पुन्हा प्रयत्न करा किंवा +91 98765 43210 वर कॉल करा.",
+    retry: "पुन्हा प्रयत्न करा",
+    callUs: "रुग्णालयाला कॉल करा",
+    close: "बंद करा",
+  },
+};
+
+export const QUICK_ACTIONS_CONFIG = [
+  { id: 'book_appointment', icon: '📅', label: { en: 'Book Appointment', hi: 'अपॉइंटमेंट बुक करें', mr: 'अपॉइंटमेंट बुक करा' }, actionType: 'APPOINTMENT_FLOW' },
+  { id: 'doctors', icon: '👨‍⚕️', label: { en: 'Our Doctors', hi: 'हमारे डॉक्टर्स', mr: 'आमचे डॉक्टर' }, query: 'Who are the doctors at Vimal Eye Hospital?' },
+  { id: 'treatments', icon: '🩺', label: { en: 'Treatments', hi: 'इलाज और सर्जरी', mr: 'उपचार व शस्त्रक्रिया' }, query: 'What eye treatments do you offer?' },
+  { id: 'fees', icon: '💰', label: { en: 'Consultation Fees', hi: 'ओपीडी फीस', mr: 'ओपीडी फी' }, query: 'What is the consultation fee?' },
+  { id: 'location', icon: '📍', label: { en: 'Location & Maps', hi: 'अस्पताल का पता', mr: 'रुग्णालयाचा पत्ता' }, query: 'Where is Vimal Eye Hospital located?' },
+  { id: 'timings', icon: '🕒', label: { en: 'OPD Timings', hi: 'ओपीडी समय', mr: 'ओपीडी वेळ' }, query: 'What are the hospital OPD timings?' },
+  { id: 'reviews', icon: '⭐', label: { en: 'Patient Reviews', hi: 'रोगी समीक्षाएं', mr: 'रुग्णांचे अभिप्राय' }, query: 'Show patient reviews and rating' },
+  { id: 'gallery', icon: '🖼', label: { en: 'Gallery', hi: 'फोटो गैलरी', mr: 'फोटो गॅलरी' }, query: 'Show hospital photos' },
+  { id: 'tour360', icon: '🌐', label: { en: '360° Virtual Tour', hi: '360° वर्चुअल टूर', mr: '360° व्हर्च्युअल टूर' }, query: 'How to view 360 degree virtual tour?' },
+  { id: 'contact', icon: '📞', label: { en: 'Contact Hospital', hi: 'संपर्क करें', mr: 'संपर्क साधा' }, query: 'What is the hospital phone number?' },
+  { id: 'enquiry', icon: '📩', label: { en: 'Send Enquiry', hi: 'पूछताछ भेजें', mr: 'चौकशी पाठवा' }, actionType: 'ENQUIRY_FLOW' },
+];

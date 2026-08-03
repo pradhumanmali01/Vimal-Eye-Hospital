@@ -13,14 +13,14 @@ export async function createAppointment(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: 'Appointment request sent successfully.',
+      message: 'Appointment request submitted successfully.',
     });
   } catch (error) {
     console.error('[AppointmentController] Error processing appointment:', error);
 
     return res.status(500).json({
       success: false,
-      message: 'Unable to send email.',
+      message: 'Unable to send appointment request.',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

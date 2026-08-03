@@ -1,6 +1,7 @@
 import React from 'react';
 import { HeartHandshake, Microscope, ShieldCheck, ChevronRight } from 'lucide-react';
-import aboutImg from '../assets/gallery/5Street View 360.jpg';
+import heroImg from '../assets/gallery/5Street View 360.jpg';
+import Hero360Viewer from './Hero360Viewer';
 
 const pillars = [
   {
@@ -28,7 +29,7 @@ export default function AboutSection({ onOpenBooking }) {
           {/* Left Stage */}
           <div className="apple-about-visual-stage reveal-on-scroll">
             <div className="apple-about-photo-card">
-              <img src={aboutImg} alt="Vimal Eye Hospital Latur Facility" loading="lazy" decoding="async" />
+              <Hero360Viewer image={heroImg} showFullscreenBtn={false} />
             </div>
 
             {/* Overlapping Glass Badge */}

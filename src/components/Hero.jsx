@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, Phone, ShieldCheck, Star, Award, ChevronRight } from 'lucide-react';
 import heroImg from '../assets/gallery/main Street View 360.jpg';
+import Hero360Viewer from './Hero360Viewer';
 
 export default function Hero({ onOpenBooking, onNavigate }) {
   return (
@@ -41,7 +42,7 @@ export default function Hero({ onOpenBooking, onNavigate }) {
         <div className="apple-hero-stage reveal-on-scroll reveal-delay-4">
           {/* Main Visual Frame */}
           <div className="apple-hero-main-card">
-            <img src={heroImg} alt="Vimal Eye Hospital Latur Facility" loading="lazy" decoding="async" />
+            <Hero360Viewer image={heroImg} />
             <div className="apple-hero-glass-overlay" />
           </div>
 

@@ -11,7 +11,6 @@ import {
   Play,
   Pause,
   Compass,
-  MapPin,
   ChevronLeft,
   ChevronRight,
   Layers,
@@ -29,6 +28,11 @@ export default function PanoramaViewer360({ initialRoomId, onClose }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(true);
   const [fov, setFov] = useState(75);
+
+  const isAutoRotatingRef = useRef(isAutoRotating);
+  useEffect(() => {
+    isAutoRotatingRef.current = isAutoRotating;
+  }, [isAutoRotating]);
 
   const room = virtualTourRooms.find((r) => r.id === currentRoomId) || virtualTourRooms[0];
   const roomIndex = virtualTourRooms.findIndex((r) => r.id === room.id);
@@ -113,15 +117,15 @@ export default function PanoramaViewer360({ initialRoomId, onClose }) {
       const inactiveDuration = Date.now() - st.lastInteractionTime;
 
       if (!st.isUserInteracting) {
-        // Inertia damping
+        // Inertia damping from recent drag/swipe
         st.lon += st.velLon;
         st.lat += st.velLat;
         st.velLon *= 0.92;
         st.velLat *= 0.92;
 
-        // Auto rotate if inactive for > 4.5s and auto rotate is enabled
-        if (inactiveDuration > 4500 && isAutoRotating) {
-          st.lon += 0.08;
+        // Auto rotate smoothly (Google Street View style ~3°/sec) if inactive > 3.5s
+        if (inactiveDuration > 3500 && isAutoRotatingRef.current) {
+          st.lon += 0.05;
         }
       }
 
