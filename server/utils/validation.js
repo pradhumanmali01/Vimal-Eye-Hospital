@@ -1,4 +1,6 @@
-import { verifyBookingToken } from './bookingAuth.js';
+/**
+ * VIMAL EYE HOSPITAL — SERVER-SIDE VALIDATION UTILITY
+ */
 
 export function validateAppointmentData(data) {
   const errors = {};
@@ -100,19 +102,6 @@ export function validateAppointmentData(data) {
     errors.time = 'Preferred time slot is required.';
   } else if (time.length > 30) {
     errors.time = 'Invalid time format.';
-  }
-
-  // 9. Booking Authorization Token Validation
-  const token = data.bookingToken || data.authToken;
-  const timestamp = data.bookingTimestamp || data.authTimestamp;
-  const isAuthValid = verifyBookingToken(
-    { name, phone: cleanPhone, age: ageStr, gender: genderStr, treatment, date, time },
-    token,
-    timestamp
-  );
-
-  if (!isAuthValid) {
-    errors.authorization = 'Invalid or expired booking authorization token. Appointments must be confirmed via the website UI button.';
   }
 
   const isValid = Object.keys(errors).length === 0;

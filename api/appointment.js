@@ -19,13 +19,12 @@
 
 import { Resend } from 'resend';
 import { validateAppointmentData } from '../server/utils/validation.js';
+import { createBookingSession, verifyAndConsumeBookingSession } from '../server/utils/bookingSession.js';
 import { generateHospitalEmailSubject, generateHospitalEmailHTML } from '../server/emails/HospitalEmailTemplate.js';
 import { generatePatientEmailSubject, generatePatientEmailHTML } from '../server/emails/PatientConfirmationTemplate.js';
 import { sendTelegramAppointmentNotification } from '../server/services/telegramService.js';
 
 // ─── In-Memory Rate Limiter (best-effort per Vercel instance) ────────────────
-// NOTE: This is per-instance only. For true distributed rate limiting across
-// Vercel serverless instances, use Upstash Redis with ratelimit-ts.
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const RATE_LIMIT_MAX = 10; // max 10 requests per IP per window
 const rateLimitMap = new Map();
@@ -49,8 +48,6 @@ function checkRateLimit(ip) {
 
 // ─── CORS Helper ─────────────────────────────────────────────────────────────
 function setCORSHeaders(res) {
-  // Use ALLOWED_ORIGIN env var — set this in Vercel Dashboard to your production domain.
-  // Defaults to hospital production domain.
   const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://vimaleyehospital.com';
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -95,7 +92,43 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ── 1. Validate environment variables ─────────────────────────────────
+    // ── 1. Validate request body ──────────────────────────────────────────
+    const body = req.body || {};
+    const validation = validateAppointmentData(body);
+
+    if (!validation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed. Please check your inputs.',
+        errors: validation.errors,
+      });
+    }
+
+    // ── 2. Handle Prepare Step (POST /api/appointment?action=prepare) ──────
+    const isPrepare = req.query.action === 'prepare' || body.action === 'prepare';
+    if (isPrepare) {
+      const sessionResult = createBookingSession(validation.sanitized);
+      return res.status(200).json({
+        success: true,
+        message: 'Booking authorization created.',
+        bookingAuthToken: sessionResult.bookingAuthToken,
+        expiresAt: sessionResult.expiresAt,
+      });
+    }
+
+    // ── 3. Verify & Consume Single-Use Authorization Token ─────────────────
+    const token = body.bookingAuthToken || body.bookingToken;
+    const authResult = verifyAndConsumeBookingSession(validation.sanitized, token);
+
+    if (!authResult.valid) {
+      const statusCode = authResult.isReplay ? 409 : 403;
+      return res.status(statusCode).json({
+        success: false,
+        message: authResult.error,
+      });
+    }
+
+    // ── 4. Validate environment variables ─────────────────────────────────
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) {
       console.error('[appointment] RESEND_API_KEY is not configured in environment variables.');
@@ -107,18 +140,6 @@ export default async function handler(req, res) {
 
     const HOSPITAL_EMAIL = process.env.HOSPITAL_EMAIL || 'pradhumanmali2@gmail.com';
     const SENDER_EMAIL = process.env.SENDER_EMAIL || 'Vimal Eye Hospital <onboarding@resend.dev>';
-
-    // ── 2. Validate request body ──────────────────────────────────────────
-    const body = req.body || {};
-    const validation = validateAppointmentData(body);
-
-    if (!validation.isValid) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed. Please check your inputs.',
-        errors: validation.errors,
-      });
-    }
 
     const { name, phone, email, age, gender, treatment, date, time, message } = validation.sanitized;
 

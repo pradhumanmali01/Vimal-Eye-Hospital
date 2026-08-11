@@ -1,4 +1,7 @@
 /**
- * VIMAL EYE HOSPITAL — APPOINTMENT AUTHORIZATION TOKEN UTILITY (FRONTEND & BACKEND RE-EXPORT)
+ * VIMAL EYE HOSPITAL — FRONTEND BOOKING AUTH UTILITY
+ * Pure client-side helper — zero server secrets, zero HMAC keys.
  */
-export { generateBookingToken, verifyBookingToken } from '../../../server/utils/bookingAuth.js';
+export function isBookingAuthActive() {
+  return true;
+}

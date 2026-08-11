@@ -6,9 +6,53 @@
  */
 
 export const appointmentService = {
-  async submitAppointment(data) {
+  async prepareAppointment(data) {
     try {
-      console.log('[appointmentService] Submitting to /api/appointment');
+      console.log('[appointmentService] Preparing booking session via /api/appointment?action=prepare');
+      const response = await fetch('/api/appointment?action=prepare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          phone: data.phone,
+          email: data.email || '',
+          age: data.age || '',
+          gender: data.gender || '',
+          treatment: data.treatment || 'General OPD Enquiry',
+          date: data.date,
+          time: data.time,
+        }),
+      });
+
+      let result = {};
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error(`Server returned ${response.status}. Endpoint not available.`);
+      }
+
+      if (!response.ok || !result.success) {
+        const msg = result.message || (result.errors ? Object.values(result.errors).join(', ') : 'Preparation failed.');
+        throw new Error(msg);
+      }
+
+      return {
+        success: true,
+        bookingAuthToken: result.bookingAuthToken,
+        expiresAt: result.expiresAt,
+      };
+    } catch (err) {
+      console.error('[appointmentService] Prepare error:', err.message);
+      return {
+        success: false,
+        message: err.message || 'Unable to prepare appointment booking session.',
+      };
+    }
+  },
+
+  async submitAppointment(data, bookingAuthToken) {
+    try {
+      console.log('[appointmentService] Submitting appointment to /api/appointment');
 
       const response = await fetch('/api/appointment', {
         method: 'POST',
@@ -20,20 +64,17 @@ export const appointmentService = {
           age: data.age || '',
           gender: data.gender || '',
           treatment: data.treatment || 'General OPD Enquiry',
-          date: data.date || new Date().toISOString().split('T')[0],
-          time: data.time || '10:00 AM',
+          date: data.date,
+          time: data.time,
           message: data.message || 'Booked via AI Assistant',
-          bookingToken: data.bookingToken,
-          bookingTimestamp: data.bookingTimestamp,
+          bookingAuthToken: bookingAuthToken || data.bookingAuthToken,
         }),
       });
 
-      // Always try to parse JSON for detailed error info
       let result = {};
       try {
         result = await response.json();
       } catch {
-        // If response is not JSON (e.g., Vercel 404 HTML page)
         const text = await response.text().catch(() => '');
         console.error('[appointmentService] Non-JSON response:', response.status, text.slice(0, 200));
         throw new Error(`Server returned ${response.status}. The API endpoint may not be configured.`);

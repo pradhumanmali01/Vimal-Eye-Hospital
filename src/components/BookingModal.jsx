@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, CheckCircle, ChevronRight, ChevronLeft, ShieldCheck, AlertCircle, Check, Loader2, RefreshCw } from 'lucide-react';
 import { treatmentsData } from '../data/treatments';
-import { generateBookingToken } from '../utils/ai/bookingAuth';
+import { appointmentService } from '../services/appointmentService';
 import {
   validateName,
   validatePhone,
@@ -282,7 +282,6 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
     setIsSubmitting(true);
     setApiError(null);
 
-    const timestamp = Date.now();
     const rawData = {
       name: form.name.trim(),
       phone: form.phone.trim(),
@@ -292,32 +291,28 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
       treatment: selectedTreatment.title,
       date: form.date,
       time: form.time,
-    };
-
-    const token = generateBookingToken(rawData, timestamp);
-
-    const payload = {
-      ...rawData,
       message: 'Booking request from Vimal Eye Hospital website modal',
-      bookingToken: token,
-      bookingTimestamp: timestamp,
     };
 
     try {
-      const response = await fetch('/api/appointment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      // Step 1: Server-issued prepare step
+      const prepRes = await appointmentService.prepareAppointment(rawData);
 
-      const data = await response.json();
+      if (!prepRes.success) {
+        setIsSubmitting(false);
+        setApiError(prepRes.message || 'Unable to prepare booking session. Please check your inputs.');
+        return;
+      }
 
-      if (response.ok && data.success) {
+      // Step 2: Submit with server-issued bookingAuthToken
+      const res = await appointmentService.submitAppointment(rawData, prepRes.bookingAuthToken);
+
+      if (res.success) {
         setIsSubmitting(false);
         setSubmitted(true);
       } else {
         setIsSubmitting(false);
-        setApiError(data.message || 'Unable to send email. Please try again.');
+        setApiError(res.message || 'Unable to complete appointment request. Please try again.');
       }
     } catch (err) {
       console.error('[BookingModal] Submit error:', err);

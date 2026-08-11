@@ -11,7 +11,6 @@ import { appointmentService } from '../services/appointmentService';
 import { contactService } from '../services/contactService';
 import { validationService } from '../services/validationService';
 import { formatTime } from '../utils/ai/formatters';
-import { generateBookingToken } from '../utils/ai/bookingAuth';
 
 const ChatContext = createContext();
 
@@ -28,9 +27,8 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
   const [currentInteractiveStep, setCurrentInteractiveStep] = useState(null); // 'treatment', 'gender', 'date', 'time', 'confirm'
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Authorization token & timestamp for appointment creation
+  // Server-issued authorization token
   const [bookingToken, setBookingToken] = useState(null);
-  const [bookingTimestamp, setBookingTimestamp] = useState(null);
 
   // Session Memory for Patient Data
   const [patientData, setPatientData] = useState({
@@ -306,11 +304,21 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
       const updatedData = { ...patientData, time: userText };
       setPatientData(updatedData);
 
-      const timestamp = Date.now();
-      const token = generateBookingToken(updatedData, timestamp);
+      setIsTyping(true);
+      const prepRes = await appointmentService.prepareAppointment(updatedData);
+      setIsTyping(false);
 
-      setBookingToken(token);
-      setBookingTimestamp(timestamp);
+      if (!prepRes.success) {
+        addMessage({
+          sender: 'bot',
+          type: 'ERROR',
+          text: `⚠️ ${prepRes.message || 'Unable to prepare appointment booking session. Please check your inputs.'}`,
+        });
+        setCurrentInteractiveStep('time');
+        return;
+      }
+
+      setBookingToken(prepRes.bookingAuthToken);
       setBookingState('READY_FOR_CONFIRMATION');
       setFlowStepIndex(7);
       setCurrentInteractiveStep('confirm');
@@ -350,29 +358,25 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
       return;
     }
 
+    if (!bookingToken) {
+      addMessage({
+        sender: 'bot',
+        type: 'ERROR',
+        text: '⚠️ Booking authorization session missing or expired. Please review your details and try again.',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     setBookingState('SUBMITTING');
 
     try {
       const activeT = getTranslation(lang);
-      let token = bookingToken;
-      let timestamp = bookingTimestamp;
-
-      if (!token || !timestamp) {
-        timestamp = Date.now();
-        token = generateBookingToken(patientData, timestamp);
-        setBookingToken(token);
-        setBookingTimestamp(timestamp);
-      }
-
-      const res = await appointmentService.submitAppointment({
-        ...patientData,
-        bookingToken: token,
-        bookingTimestamp: timestamp,
-      });
+      const res = await appointmentService.submitAppointment(patientData, bookingToken);
 
       if (res.success) {
         setBookingState('SUBMITTED');
+        setBookingToken(null);
         setCurrentInteractiveStep(null);
         setActiveFlow('CHAT');
         addMessage({
