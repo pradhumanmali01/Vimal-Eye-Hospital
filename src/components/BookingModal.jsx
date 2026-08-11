@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, CheckCircle, ChevronRight, ChevronLeft, ShieldCheck, AlertCircle, Check, Loader2, RefreshCw } from 'lucide-react';
 import { treatmentsData } from '../data/treatments';
+import { generateBookingToken } from '../utils/ai/bookingAuth';
 import {
   validateName,
   validatePhone,
@@ -281,7 +282,8 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
     setIsSubmitting(true);
     setApiError(null);
 
-    const payload = {
+    const timestamp = Date.now();
+    const rawData = {
       name: form.name.trim(),
       phone: form.phone.trim(),
       email: form.email.trim(),
@@ -290,7 +292,15 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
       treatment: selectedTreatment.title,
       date: form.date,
       time: form.time,
+    };
+
+    const token = generateBookingToken(rawData, timestamp);
+
+    const payload = {
+      ...rawData,
       message: 'Booking request from Vimal Eye Hospital website modal',
+      bookingToken: token,
+      bookingTimestamp: timestamp,
     };
 
     try {

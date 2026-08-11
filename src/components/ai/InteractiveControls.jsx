@@ -6,7 +6,7 @@ import React from 'react';
 import { Calendar, Clock, ChevronRight } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-export default function InteractiveControls({ step, onSelect }) {
+export default function InteractiveControls({ step, onSelect, onConfirm, onEdit, patientData, isSubmitting }) {
   const { texts } = useLanguage();
 
   // 1. Treatment Selector
@@ -216,12 +216,72 @@ export default function InteractiveControls({ step, onSelect }) {
     );
   }
 
-  // 5. Confirmation Action Buttons
+  // 5. Confirmation Action Buttons & Structured Summary Card
   if (step === 'confirm') {
+    const data = patientData || {};
+
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', marginTop: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', marginTop: 8 }}>
+        {/* Structured React Summary Card */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, rgba(0, 113, 227, 0.04), rgba(16, 185, 129, 0.04))',
+            borderRadius: '16px',
+            border: '1px solid rgba(0, 113, 227, 0.15)',
+            padding: '14px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
+          <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text-dark-primary)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+            📋 Appointment Summary
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px 12px', fontSize: '0.8rem' }}>
+            <div>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.7rem' }}>👤 Patient</span>
+              <strong style={{ color: '#000000' }}>{data.name || 'N/A'}</strong>
+            </div>
+
+            <div>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.7rem' }}>📞 Phone</span>
+              <strong style={{ color: '#000000' }}>+91 {data.phone || 'N/A'}</strong>
+            </div>
+
+            <div>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.7rem' }}>🎂 Age</span>
+              <strong style={{ color: '#000000' }}>{data.age ? `${data.age} Years` : 'N/A'}</strong>
+            </div>
+
+            <div>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.7rem' }}>🚻 Gender</span>
+              <strong style={{ color: '#000000' }}>{data.gender || 'N/A'}</strong>
+            </div>
+
+            <div style={{ gridColumn: 'span 2' }}>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.7rem' }}>👁 Treatment</span>
+              <strong style={{ color: 'var(--apple-blue)' }}>{data.treatment || 'N/A'}</strong>
+            </div>
+
+            <div>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.7rem' }}>📅 Date</span>
+              <strong style={{ color: '#000000' }}>{data.date || 'N/A'}</strong>
+            </div>
+
+            <div>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.7rem' }}>🕐 Time</span>
+              <strong style={{ color: '#000000' }}>{data.time || 'N/A'}</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Real Application-Controlled Confirmation Button */}
         <button
-          onClick={() => onSelect('YES')}
+          disabled={isSubmitting}
+          onClick={() => {
+            if (onConfirm) onConfirm();
+          }}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -230,21 +290,25 @@ export default function InteractiveControls({ step, onSelect }) {
             padding: '12px 16px',
             borderRadius: '22px',
             border: 'none',
-            background: '#10B981',
+            background: isSubmitting ? '#9CA3AF' : '#10B981',
             color: '#FFFFFF',
             fontSize: '0.88rem',
             fontWeight: 800,
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            boxShadow: isSubmitting ? 'none' : '0 4px 14px rgba(16, 185, 129, 0.4)',
             transition: 'all 0.2s ease',
           }}
         >
-          {texts.btnConfirm}
+          {isSubmitting ? '⏳ Submitting Appointment...' : '✓ Confirm Appointment'}
         </button>
 
         <div style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={() => onSelect('EDIT')}
+            disabled={isSubmitting}
+            onClick={() => {
+              if (onEdit) onEdit();
+              else if (onSelect) onSelect('EDIT');
+            }}
             style={{
               flex: 1,
               display: 'flex',
@@ -258,31 +322,10 @@ export default function InteractiveControls({ step, onSelect }) {
               color: 'var(--text-dark-primary)',
               fontSize: '0.8rem',
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
             }}
           >
-            {texts.btnEdit}
-          </button>
-
-          <button
-            onClick={() => onSelect('CANCEL')}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 4,
-              padding: '9px 12px',
-              borderRadius: '18px',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              background: '#FFFFFF',
-              color: '#EF4444',
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-          >
-            {texts.btnCancel}
+            ✎ Edit Details
           </button>
         </div>
       </div>

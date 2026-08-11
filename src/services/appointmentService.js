@@ -23,6 +23,8 @@ export const appointmentService = {
           date: data.date || new Date().toISOString().split('T')[0],
           time: data.time || '10:00 AM',
           message: data.message || 'Booked via AI Assistant',
+          bookingToken: data.bookingToken,
+          bookingTimestamp: data.bookingTimestamp,
         }),
       });
 

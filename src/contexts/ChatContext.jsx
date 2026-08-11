@@ -1,6 +1,7 @@
 /**
  * CHAT CONTEXT & PROVIDER
  * Manages Chat messages, active flows, interactive step controls, session memory, and streaming state.
+ * Enforces strict authorization boundaries for appointment creation.
  */
 import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { useLanguage } from './LanguageContext';
@@ -10,6 +11,7 @@ import { appointmentService } from '../services/appointmentService';
 import { contactService } from '../services/contactService';
 import { validationService } from '../services/validationService';
 import { formatTime } from '../utils/ai/formatters';
+import { generateBookingToken } from '../utils/ai/bookingAuth';
 
 const ChatContext = createContext();
 
@@ -21,8 +23,14 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [activeFlow, setActiveFlow] = useState('CHAT'); // 'CHAT', 'APPOINTMENT_FLOW', 'ENQUIRY_FLOW'
+  const [bookingState, setBookingState] = useState('IDLE'); // 'IDLE', 'COLLECTING_PATIENT_INFO', 'READY_FOR_CONFIRMATION', 'SUBMITTING', 'SUBMITTED'
   const [flowStepIndex, setFlowStepIndex] = useState(0);
   const [currentInteractiveStep, setCurrentInteractiveStep] = useState(null); // 'treatment', 'gender', 'date', 'time', 'confirm'
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Authorization token & timestamp for appointment creation
+  const [bookingToken, setBookingToken] = useState(null);
+  const [bookingTimestamp, setBookingTimestamp] = useState(null);
 
   // Session Memory for Patient Data
   const [patientData, setPatientData] = useState({
@@ -106,8 +114,10 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
     if (!userQuery || !userQuery.trim()) return;
     const text = userQuery.trim();
 
-    // Reset interactive control step once user submits option
-    setCurrentInteractiveStep(null);
+    // Reset interactive control step once user submits option (except on confirm step)
+    if (currentInteractiveStep !== 'confirm') {
+      setCurrentInteractiveStep(null);
+    }
 
     // 1. Add User Message
     addMessage({ sender: 'user', text });
@@ -156,8 +166,11 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
   const startAppointmentFlow = () => {
     const activeT = getTranslation(lang);
     setActiveFlow('APPOINTMENT_FLOW');
+    setBookingState('COLLECTING_PATIENT_INFO');
     setFlowStepIndex(0);
     setCurrentInteractiveStep(null);
+    setBookingToken(null);
+    setBookingTimestamp(null);
 
     // If patient name already known in session
     if (patientData.name) {
@@ -290,54 +303,113 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
     }
 
     if (currentStep === 'time') {
-      updatePatientData('time', userText);
+      const updatedData = { ...patientData, time: userText };
+      setPatientData(updatedData);
+
+      const timestamp = Date.now();
+      const token = generateBookingToken(updatedData, timestamp);
+
+      setBookingToken(token);
+      setBookingTimestamp(timestamp);
+      setBookingState('READY_FOR_CONFIRMATION');
       setFlowStepIndex(7);
       setCurrentInteractiveStep('confirm');
 
-      const summaryText = activeT.stepConfirmPrompt
-        .replace('{name}', patientData.name)
-        .replace('{phone}', patientData.phone)
-        .replace('{age}', patientData.age || 'N/A')
-        .replace('{gender}', patientData.gender || 'N/A')
-        .replace('{treatment}', patientData.treatment)
-        .replace('{date}', patientData.date)
-        .replace('{time}', userText);
-
-      addMessage({ sender: 'bot', text: summaryText, step: 'confirm' });
+      addMessage({
+        sender: 'bot',
+        type: 'APPOINTMENT_SUMMARY',
+        text: '📋 **Appointment Summary**\n\nPlease review your details and click the **Confirm Appointment** button below to complete your booking.',
+        step: 'confirm',
+      });
       return;
     }
 
     if (currentStep === 'confirm') {
       const inputLower = userText.toLowerCase();
 
-      if (inputLower.includes('yes') || inputLower.includes('confirm') || inputLower.includes('पक्का') || inputLower.includes('निश्चित')) {
-        setIsTyping(true);
-        const res = await appointmentService.submitAppointment(patientData);
-        setIsTyping(false);
-
-        if (res.success) {
-          addMessage({
-            sender: 'bot',
-            type: 'SUCCESS_CONFIRMATION',
-            text: activeT.appointmentSuccess.replace('{phone}', patientData.phone),
-          });
-          setActiveFlow('CHAT');
-        } else {
-          addMessage({
-            sender: 'bot',
-            type: 'ERROR',
-            text: `⚠️ ${activeT.submitError}`,
-          });
-        }
-      } else if (inputLower.includes('edit') || inputLower.includes('बदल')) {
-        setFlowStepIndex(0);
-        setCurrentInteractiveStep(null);
-        addMessage({ sender: 'bot', text: activeT.stepNamePrompt });
-      } else {
-        addMessage({ sender: 'bot', text: "Appointment cancelled. How else can I assist you?" });
-        setActiveFlow('CHAT');
+      if (inputLower.includes('edit') || inputLower.includes('बदल')) {
+        handleEditAppointment();
+        return;
       }
+
+      // Plain text messages in chat NEVER create an appointment!
+      addMessage({
+        sender: 'bot',
+        text: 'ℹ️ Please review your appointment details above and click the **"Confirm Appointment"** button to complete your booking.',
+        step: 'confirm',
+      });
+      setCurrentInteractiveStep('confirm');
     }
+  };
+
+  // Explicit Application-Controlled Confirmation Handler (Triggered ONLY via button click)
+  const handleConfirmAppointment = async () => {
+    if (isSubmitting) return; // Prevent double click / duplicate submission
+    if (bookingState !== 'READY_FOR_CONFIRMATION') {
+      console.warn('[ChatContext] Confirmation rejected: Session not in READY_FOR_CONFIRMATION state');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setBookingState('SUBMITTING');
+
+    try {
+      const activeT = getTranslation(lang);
+      let token = bookingToken;
+      let timestamp = bookingTimestamp;
+
+      if (!token || !timestamp) {
+        timestamp = Date.now();
+        token = generateBookingToken(patientData, timestamp);
+        setBookingToken(token);
+        setBookingTimestamp(timestamp);
+      }
+
+      const res = await appointmentService.submitAppointment({
+        ...patientData,
+        bookingToken: token,
+        bookingTimestamp: timestamp,
+      });
+
+      if (res.success) {
+        setBookingState('SUBMITTED');
+        setCurrentInteractiveStep(null);
+        setActiveFlow('CHAT');
+        addMessage({
+          sender: 'bot',
+          type: 'SUCCESS_CONFIRMATION',
+          text: activeT.appointmentSuccess.replace('{phone}', patientData.phone),
+        });
+      } else {
+        setBookingState('READY_FOR_CONFIRMATION');
+        addMessage({
+          sender: 'bot',
+          type: 'ERROR',
+          text: `⚠️ ${res.message || activeT.submitError}`,
+        });
+      }
+    } catch (err) {
+      console.error('[ChatContext] Confirm error:', err);
+      setBookingState('READY_FOR_CONFIRMATION');
+      addMessage({
+        sender: 'bot',
+        type: 'ERROR',
+        text: '⚠️ Unable to complete booking. Please try again or call the hospital.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Edit Appointment Handler
+  const handleEditAppointment = () => {
+    setBookingState('COLLECTING_PATIENT_INFO');
+    setFlowStepIndex(0);
+    setCurrentInteractiveStep(null);
+    setBookingToken(null);
+    setBookingTimestamp(null);
+    const activeT = getTranslation(lang);
+    addMessage({ sender: 'bot', text: activeT.stepNamePrompt, step: 'name' });
   };
 
   // ─── ENQUIRY FLOW HANDLER ──────────────────────────────────────────────────
@@ -411,13 +483,17 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
         messages,
         isTyping,
         activeFlow,
+        bookingState,
         patientData,
+        isSubmitting,
         chatBodyRef,
         currentInteractiveStep,
         setCurrentInteractiveStep,
         sendMessage,
         startAppointmentFlow,
         startEnquiryFlow,
+        handleConfirmAppointment,
+        handleEditAppointment,
         addMessage,
         onOpenGlobalBooking,
       }}
@@ -434,3 +510,4 @@ export function useChatContext() {
   }
   return context;
 }
+

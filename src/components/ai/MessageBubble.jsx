@@ -16,7 +16,15 @@ export default function MessageBubble({ message, isLastMessage }) {
     type: message.type,
   };
 
-  const { startAppointmentFlow, currentInteractiveStep, sendMessage } = useChatContext();
+  const {
+    startAppointmentFlow,
+    currentInteractiveStep,
+    sendMessage,
+    handleConfirmAppointment,
+    handleEditAppointment,
+    patientData,
+    isSubmitting,
+  } = useChatContext();
 
   const isSuccess = type === 'SUCCESS_CONFIRMATION';
 
@@ -77,6 +85,10 @@ export default function MessageBubble({ message, isLastMessage }) {
             <InteractiveControls
               step={currentInteractiveStep}
               onSelect={(selectedVal) => sendMessage(selectedVal)}
+              onConfirm={handleConfirmAppointment}
+              onEdit={handleEditAppointment}
+              patientData={patientData}
+              isSubmitting={isSubmitting}
             />
           )}
 
