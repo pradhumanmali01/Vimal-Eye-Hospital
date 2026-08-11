@@ -15,6 +15,7 @@ import { Resend } from 'resend';
 import { validateAppointmentData } from '../server/utils/validation.js';
 import { generateHospitalEmailSubject, generateHospitalEmailHTML } from '../server/emails/HospitalEmailTemplate.js';
 import { generatePatientEmailSubject, generatePatientEmailHTML } from '../server/emails/PatientConfirmationTemplate.js';
+import { sendTelegramAppointmentNotification } from '../server/services/telegramService.js';
 
 // ─── CORS helper ────────────────────────────────────────────────────────────
 function setCORSHeaders(res) {
@@ -120,12 +121,21 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 5. Return success ─────────────────────────────────────────────────
+    // ── 5. Send Telegram notification (non-blocking) ────────────────────
+    let telegramResult = null;
+    try {
+      telegramResult = await sendTelegramAppointmentNotification(validation.sanitized);
+    } catch (telegramErr) {
+      console.error('[appointment] Telegram notification non-fatal error:', telegramErr.message);
+    }
+
+    // ── 6. Return success ─────────────────────────────────────────────────
     return res.status(200).json({
       success: true,
       message: 'Appointment request submitted successfully.',
       hospitalEmailId: hospitalResult.data?.id,
       patientEmailId,
+      telegramSent: telegramResult?.success || false,
     });
 
   } catch (err) {

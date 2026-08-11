@@ -74,6 +74,10 @@ export function validateAppointmentData(data) {
       treatment,
       date,
       time,
+      age: (data.age || '').toString().trim(),
+      gender: (data.gender || '').toString().trim(),
+      additionalNotes: (data.additionalNotes || '').toString().trim(),
+      appointmentId: (data.appointmentId || '').toString().trim(),
       message: (data.message || '').trim(),
     },
   };
