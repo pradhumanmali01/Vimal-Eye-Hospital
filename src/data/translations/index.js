@@ -1,9 +1,9 @@
 /**
  * TRANSLATIONS DICTIONARY EXPORTER
  */
-import { englishTranslations } from './english';
-import { hindiTranslations } from './hindi';
-import { marathiTranslations } from './marathi';
+import { englishTranslations } from './english.js';
+import { hindiTranslations } from './hindi.js';
+import { marathiTranslations } from './marathi.js';
 
 export const TRANSLATIONS = {
   en: englishTranslations,

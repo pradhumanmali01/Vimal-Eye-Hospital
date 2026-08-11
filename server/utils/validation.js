@@ -41,9 +41,13 @@ export function validateAppointmentData(data) {
 
   // 3. Email Validation (Optional field)
   if (email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-    if (!emailRegex.test(email)) {
-      errors.email = 'Please enter a valid email address.';
+    if (email.length > 254) {
+      errors.email = 'Email address is too long.';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+      if (!emailRegex.test(email)) {
+        errors.email = 'Please enter a valid email address.';
+      }
     }
   }
 
@@ -60,7 +64,7 @@ export function validateAppointmentData(data) {
     }
   }
 
-  // 5. Gender Validation (Required: Male, Female, Other, Prefer not to say)
+  // 5. Gender Validation (Required: allowlist)
   const genderStr = (data.gender || '').toString().trim();
   const ALLOWED_GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
   if (!genderStr) {
@@ -69,22 +73,42 @@ export function validateAppointmentData(data) {
     errors.gender = 'Please select a valid gender option.';
   }
 
-  // 6. Treatment Validation
+  // 6. Treatment Validation (required, max 200 chars)
   if (!treatment) {
     errors.treatment = 'Treatment selection is required.';
+  } else if (treatment.length > 200) {
+    errors.treatment = 'Treatment description is too long (max 200 characters).';
   }
 
-  // 7. Preferred Date Validation
+  // 7. Preferred Date Validation (required, must not be in the past)
   if (!date) {
     errors.date = 'Preferred date is required.';
+  } else if (date.length > 30) {
+    errors.date = 'Invalid date format.';
+  } else {
+    // Reject past dates — compare against midnight UTC today
+    const submittedDate = new Date(date);
+    const todayMidnight = new Date();
+    todayMidnight.setUTCHours(0, 0, 0, 0);
+    if (isNaN(submittedDate.getTime())) {
+      errors.date = 'Please enter a valid date.';
+    } else if (submittedDate < todayMidnight) {
+      errors.date = 'Appointment date cannot be in the past. Please select a future date.';
+    }
   }
 
-  // 8. Preferred Time Validation
+  // 8. Preferred Time Validation (required, max 30 chars)
   if (!time) {
     errors.time = 'Preferred time slot is required.';
+  } else if (time.length > 30) {
+    errors.time = 'Invalid time format.';
   }
 
   const isValid = Object.keys(errors).length === 0;
+
+  // Free-text fields: sanitize and enforce max length
+  const rawMessage = (data.message || '').trim();
+  const rawNotes = (data.additionalNotes || '').toString().trim();
 
   return {
     isValid,
@@ -96,11 +120,11 @@ export function validateAppointmentData(data) {
       treatment,
       date,
       time,
-      age: (data.age || '').toString().trim(),
-      gender: (data.gender || '').toString().trim(),
-      additionalNotes: (data.additionalNotes || '').toString().trim(),
-      appointmentId: (data.appointmentId || '').toString().trim(),
-      message: (data.message || '').trim(),
+      age: ageStr,
+      gender: genderStr,
+      additionalNotes: rawNotes.slice(0, 2000),
+      appointmentId: (data.appointmentId || '').toString().trim().slice(0, 100),
+      message: rawMessage.slice(0, 2000),
     },
   };
 }

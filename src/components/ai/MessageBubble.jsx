@@ -6,7 +6,6 @@ import React from 'react';
 import { Bot, User, Calendar, CheckCircle2 } from 'lucide-react';
 import StreamingMessage from './StreamingMessage';
 import InteractiveControls from './InteractiveControls';
-import { parseMarkdownLinks } from '../../utils/ai/formatters';
 import { useChatContext } from '../../contexts/ChatContext';
 
 export default function MessageBubble({ message, isLastMessage }) {
@@ -70,7 +69,7 @@ export default function MessageBubble({ message, isLastMessage }) {
           {isBot ? (
             <StreamingMessage text={text} />
           ) : (
-            <span dangerouslySetInnerHTML={{ __html: parseMarkdownLinks(text) }} />
+            <span>{text}</span>
           )}
 
           {/* Render Tappable Interactive Control Buttons if on active step */}

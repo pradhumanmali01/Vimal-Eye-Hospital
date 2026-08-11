@@ -21,7 +21,7 @@ export async function sendAppointmentEmails(appointmentData) {
   const resend = new Resend(apiKey);
 
   // 1. Send Notification Email to Hospital
-  const hospitalSubject = generateHospitalEmailSubject();
+  const hospitalSubject = generateHospitalEmailSubject({ name, treatment });
   const hospitalHtml = generateHospitalEmailHTML({ name, phone, email, age, gender, treatment, date, time, message });
 
   console.log(`[EmailService] Sending hospital notification to ${HOSPITAL_EMAIL}...`);
@@ -46,7 +46,7 @@ export async function sendAppointmentEmails(appointmentData) {
   if (email && email.trim().length > 0) {
     try {
       const patientSubject = generatePatientEmailSubject();
-      const patientHtml = generatePatientEmailHTML({ name, treatment, date, time });
+      const patientHtml = generatePatientEmailHTML({ name, phone, treatment, date, time });
 
       console.log(`[EmailService] Sending patient confirmation to ${email}...`);
 

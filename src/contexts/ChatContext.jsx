@@ -232,7 +232,20 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
     }
 
     if (currentStep === 'gender') {
-      updatePatientData('gender', userText);
+      const ALLOWED_GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+      const matchedGender = ALLOWED_GENDERS.find(g => g.toLowerCase() === userText.trim().toLowerCase());
+      
+      if (!matchedGender) {
+        addMessage({
+          sender: 'bot',
+          text: `⚠️ Please select a valid gender option from the choices below.`,
+          step: 'gender',
+        });
+        setCurrentInteractiveStep('gender');
+        return;
+      }
+
+      updatePatientData('gender', matchedGender);
       setFlowStepIndex(4);
       setCurrentInteractiveStep('treatment');
       addMessage({

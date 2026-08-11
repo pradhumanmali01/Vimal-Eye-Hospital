@@ -8,22 +8,24 @@ try {
 import express from 'express';
 import cors from 'cors';
 import appointmentRoutes from './routes/appointmentRoutes.js';
+import enquiryRoutes from './routes/enquiryRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middlewares
-app.use(cors());
+// Middlewares — restrict CORS to localhost origins only (local dev server)
+app.use(cors({ origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5000'] }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', service: 'Vimal Eye Hospital API', timestamp: new Date() });
+  res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
 // API Routes
 app.use('/api', appointmentRoutes);
+app.use('/api', enquiryRoutes);
 
 // Global 404 Handler
 app.use((req, res) => {

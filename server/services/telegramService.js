@@ -20,14 +20,20 @@ function cleanupCache() {
  * Formats appointment data into a clean, professional Telegram message.
  */
 export function formatTelegramMessage(appointment) {
-  const { name, phone, age, gender, treatment, date, time, message, additionalNotes, appointmentId } = appointment;
+  const { name, phone, email, age, gender, treatment, date, time, message, additionalNotes, appointmentId } = appointment;
 
-  let patientDetailsStr = `Name: ${name || 'N/A'}\nPhone: ${phone || 'N/A'}\nAge: ${age || 'N/A'}\nGender: ${gender || 'N/A'}`;
+  const formattedPhone = phone
+    ? (phone.startsWith('+') ? phone : `+91 ${phone}`)
+    : 'N/A';
+
+  const emailStr = (email && String(email).trim().length > 0) ? String(email).trim() : 'Not provided';
+
+  let patientDetailsStr = `Name: ${name || 'N/A'}\nPhone: ${formattedPhone}\nEmail: ${emailStr}\nAge: ${age || 'N/A'}\nGender: ${gender || 'N/A'}`;
 
   const notes = additionalNotes || message;
-  const showNotes = notes && notes.trim().length > 0 && !notes.includes('Booking request from Vimal Eye Hospital website modal');
+  const showNotes = notes && notes.trim().length > 0 && !notes.includes('Booking request from Vimal Eye Hospital website modal') && !notes.includes('Booked via AI Assistant');
 
-  let msg = `🏥 NEW APPOINTMENT\n━━━━━━━━━━━━━━━━━━━━\n\n👤 PATIENT DETAILS\n\n${patientDetailsStr}\n\n🩺 TREATMENT\n\n${treatment || 'General OPD Enquiry'}\n\n📅 APPOINTMENT\n\nDate: ${date || 'N/A'}\nTime: ${time || 'N/A'}`;
+  let msg = `🏥 NEW APPOINTMENT\n━━━━━━━━━━━━━━━━━━━━\n\n👤 PATIENT DETAILS\n\n${patientDetailsStr}\n\n👁️ TREATMENT\n\n${treatment || 'General OPD Enquiry'}\n\n📅 APPOINTMENT\n\nDate: ${date || 'N/A'}\nTime: ${time || 'N/A'}`;
 
   if (showNotes) {
     msg += `\n\n📝 ADDITIONAL NOTES\n\n${notes.trim()}`;

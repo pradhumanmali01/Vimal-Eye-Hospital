@@ -12,12 +12,12 @@ export default function InteractiveControls({ step, onSelect }) {
   // 1. Treatment Selector
   if (step === 'treatment') {
     const treatments = [
-      { id: 'cataract', label: texts.treatmentCat },
-      { id: 'lasik', label: texts.treatmentLasik },
-      { id: 'retina', label: texts.treatmentRetina },
-      { id: 'glaucoma', label: texts.treatmentGlaucoma },
-      { id: 'pediatric', label: texts.treatmentPediatric },
-      { id: 'opd', label: texts.treatmentOpd },
+      { id: 'cataract', label: texts?.treatmentCat || '🔬 Micro-Phaco Cataract Surgery' },
+      { id: 'lasik', label: texts?.treatmentLasik || '👁 100% Blade-Free LASIK Laser' },
+      { id: 'retina', label: texts?.treatmentRetina || '👁 Vitreoretinal & Retina Care' },
+      { id: 'glaucoma', label: texts?.treatmentGlaucoma || '🧿 Glaucoma Clinic & Screening' },
+      { id: 'pediatric', label: texts?.treatmentPediatric || '👶 Pediatric Ophthalmology' },
+      { id: 'opd', label: texts?.treatmentOpd || '🩺 General Eye OPD Checkup' },
     ];
 
     return (
@@ -64,10 +64,10 @@ export default function InteractiveControls({ step, onSelect }) {
   // 2. Gender Selector
   if (step === 'gender') {
     const genders = [
-      { id: 'male', label: texts.genderMale || 'Male' },
-      { id: 'female', label: texts.genderFemale || 'Female' },
-      { id: 'other', label: texts.genderOther || 'Other' },
-      { id: 'pnts', label: texts.genderPreferNotToSay || 'Prefer not to say' },
+      { id: 'male', label: texts?.genderMale || 'Male' },
+      { id: 'female', label: texts?.genderFemale || 'Female' },
+      { id: 'other', label: texts?.genderOther || 'Other' },
+      { id: 'pnts', label: texts?.genderPreferNotToSay || 'Prefer not to say' },
     ];
 
     return (

@@ -1,26 +1,24 @@
 /**
  * ENQUIRY & CONTACT SERVICE
- * Calls POST /api/appointment
+ * Calls POST /api/enquiry — dedicated enquiry endpoint (no age/gender required)
  * - On localhost: proxied by Vite to Express server (server/index.js)
- * - On Vercel:   handled by Vercel Serverless Function (api/appointment.js)
+ * - On Vercel:   handled by Vercel Serverless Function (api/enquiry.js)
  */
 
 export const contactService = {
   async submitEnquiry(data) {
     try {
-      console.log('[contactService] Submitting enquiry to /api/appointment:', data.name);
+      console.log('[contactService] Submitting enquiry to /api/enquiry');
 
-      const response = await fetch('/api/appointment', {
+      const response = await fetch('/api/enquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: data.name,
           phone: data.phone,
           email: data.email || '',
-          treatment: data.subject || 'General Enquiry',
-          date: new Date().toISOString().split('T')[0],
-          time: 'General OPD',
-          message: data.message || 'Enquiry via AI Assistant',
+          subject: data.subject || 'General OPD Enquiry',
+          message: data.message || '',
         }),
       });
 
@@ -37,7 +35,7 @@ export const contactService = {
 
       if (!response.ok || !result.success) {
         const errorMsg = result.message || `Server error (${response.status})`;
-        console.error('[contactService] Server returned error:', errorMsg, result.errors || '');
+        console.error('[contactService] Server returned error:', errorMsg);
         throw new Error(errorMsg);
       }
 

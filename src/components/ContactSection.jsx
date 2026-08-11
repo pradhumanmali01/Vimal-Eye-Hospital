@@ -113,6 +113,8 @@ export default function ContactSection({ onOpenBooking }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
     setErrorMsg(null);
 
     const nameVal = validateName(form.name);
@@ -130,16 +132,14 @@ export default function ContactSection({ onOpenBooking }) {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/appointment', {
+      const response = await fetch('/api/enquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: form.name.trim(),
           phone: form.phone.trim(),
           email: form.email.trim(),
-          treatment: form.subject,
-          date: new Date().toISOString().split('T')[0],
-          time: 'General OPD',
+          subject: form.subject || 'General OPD Enquiry',
           message: form.message.trim() || 'Enquiry submitted via Contact Section',
         }),
       });
@@ -154,7 +154,7 @@ export default function ContactSection({ onOpenBooking }) {
         setErrorMsg(data.message || 'Unable to send enquiry. Please try again.');
       }
     } catch (err) {
-      console.error('[ContactSection] Submit error:', err);
+      console.error('[ContactSection] Submit error:', err.message);
       setLoading(false);
       setErrorMsg('Unable to send enquiry. Please check your connection and try again.');
     }

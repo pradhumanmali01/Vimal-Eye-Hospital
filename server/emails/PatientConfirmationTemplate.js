@@ -1,13 +1,25 @@
 /**
  * PATIENT CONFIRMATION EMAIL TEMPLATE
  * Sent to: Patient's email (if provided)
+ *
+ * SECURITY: All dynamic values are HTML-escaped via esc() to prevent injection.
  */
 
-export function generatePatientEmailSubject() {
-  return `Appointment Request Received`;
+// ─── HTML Escape Helper ───────────────────────────────────────────────────────
+function esc(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-export function generatePatientEmailHTML({ name, treatment, date, time }) {
+export function generatePatientEmailSubject() {
+  return `Appointment Request Received — Vimal Eye Hospital`;
+}
+
+export function generatePatientEmailHTML({ name, phone, treatment, date, time }) {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -43,7 +55,7 @@ export function generatePatientEmailHTML({ name, treatment, date, time }) {
     </div>
 
     <div class="body">
-      <div class="greeting">Hi ${name},</div>
+      <div class="greeting">Hi ${esc(name)},</div>
       <p class="intro">
         Thank you for choosing <strong>Vimal Eye Hospital</strong>. We have successfully received your appointment request.
       </p>
@@ -51,16 +63,20 @@ export function generatePatientEmailHTML({ name, treatment, date, time }) {
       <div class="card">
         <div class="card-title">Appointment Request Details</div>
         <div class="item">
+          <span class="label">📱 Phone Submitted</span>
+          <span class="val">+91 ${esc(phone)}</span>
+        </div>
+        <div class="item">
           <span class="label">👁 Treatment</span>
-          <span class="val" style="color: #0071E3;">${treatment}</span>
+          <span class="val" style="color: #0071E3;">${esc(treatment)}</span>
         </div>
         <div class="item">
           <span class="label">📅 Preferred Date</span>
-          <span class="val">${date}</span>
+          <span class="val">${esc(date)}</span>
         </div>
         <div class="item">
           <span class="label">🕒 Preferred Time</span>
-          <span class="val">${time}</span>
+          <span class="val">${esc(time)}</span>
         </div>
       </div>
 

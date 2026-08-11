@@ -6,9 +6,16 @@ import { sendTelegramAppointmentNotification } from '../services/telegramService
 
 export async function createAppointment(req, res) {
   try {
-    const appointmentData = req.sanitizedAppointment || req.body;
+    const appointmentData = req.sanitizedAppointment;
+    if (!appointmentData) {
+      console.error('[AppointmentController] sanitizedAppointment missing from request context.');
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error. Please try again or call us directly.',
+      });
+    }
 
-    console.log('[AppointmentController] Processing appointment request for:', appointmentData.name);
+    console.log('[AppointmentController] Processing appointment request');
 
     await sendAppointmentEmails(appointmentData);
 

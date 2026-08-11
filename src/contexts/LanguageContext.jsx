@@ -2,7 +2,8 @@
  * LANGUAGE CONTEXT & PROVIDER
  */
 import React, { createContext, useState, useContext } from 'react';
-import { SUPPORTED_LANGUAGES, SYSTEM_TEXTS } from '../utils/ai/constants';
+import { SUPPORTED_LANGUAGES } from '../utils/ai/constants';
+import { getTranslation } from '../data/translations';
 
 const LanguageContext = createContext();
 
@@ -15,7 +16,7 @@ export function LanguageProvider({ children }) {
     }
   };
 
-  const texts = SYSTEM_TEXTS[lang] || SYSTEM_TEXTS.en;
+  const texts = getTranslation(lang);
 
   return (
     <LanguageContext.Provider value={{ lang, switchLanguage, texts, languages: SUPPORTED_LANGUAGES }}>

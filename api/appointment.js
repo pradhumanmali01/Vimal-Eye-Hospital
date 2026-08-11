@@ -8,7 +8,13 @@
  * Environment variables required in Vercel dashboard:
  *   RESEND_API_KEY
  *   HOSPITAL_EMAIL
- *   SENDER_EMAIL  (optional, defaults to onboarding@resend.dev)
+ *   SENDER_EMAIL      (optional, defaults to onboarding@resend.dev)
+ *   ALLOWED_ORIGIN    (optional, defaults to https://vimaleyehospital.com)
+ *
+ * For distributed rate limiting across Vercel instances, configure:
+ *   UPSTASH_REDIS_REST_URL
+ *   UPSTASH_REDIS_REST_TOKEN
+ * See: https://upstash.com/docs/redis/sdks/ratelimit-ts/overview
  */
 
 import { Resend } from 'resend';
@@ -17,14 +23,41 @@ import { generateHospitalEmailSubject, generateHospitalEmailHTML } from '../serv
 import { generatePatientEmailSubject, generatePatientEmailHTML } from '../server/emails/PatientConfirmationTemplate.js';
 import { sendTelegramAppointmentNotification } from '../server/services/telegramService.js';
 
-// ─── CORS helper ────────────────────────────────────────────────────────────
+// ─── In-Memory Rate Limiter (best-effort per Vercel instance) ────────────────
+// NOTE: This is per-instance only. For true distributed rate limiting across
+// Vercel serverless instances, use Upstash Redis with ratelimit-ts.
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX = 10; // max 10 requests per IP per window
+const rateLimitMap = new Map();
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+
+  if (!record || now - record.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitMap.set(ip, { windowStart: now, count: 1 });
+    return { allowed: true, remaining: RATE_LIMIT_MAX - 1 };
+  }
+
+  record.count++;
+  if (record.count > RATE_LIMIT_MAX) {
+    return { allowed: false, remaining: 0, resetAt: record.windowStart + RATE_LIMIT_WINDOW_MS };
+  }
+
+  return { allowed: true, remaining: RATE_LIMIT_MAX - record.count };
+}
+
+// ─── CORS Helper ─────────────────────────────────────────────────────────────
 function setCORSHeaders(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Use ALLOWED_ORIGIN env var — set this in Vercel Dashboard to your production domain.
+  // Defaults to hospital production domain.
+  const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://vimaleyehospital.com';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-// ─── Main Handler ────────────────────────────────────────────────────────────
+// ─── Main Handler ─────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   // Handle preflight OPTIONS request
   if (req.method === 'OPTIONS') {
@@ -34,11 +67,10 @@ export default async function handler(req, res) {
 
   setCORSHeaders(res);
 
-  // Health check
+  // Health check (minimal response — no internal details)
   if (req.method === 'GET') {
     return res.status(200).json({
       status: 'ok',
-      service: 'Vimal Eye Hospital API (Vercel)',
       timestamp: new Date(),
     });
   }
@@ -48,15 +80,28 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
   }
 
+  // ── Rate limiting ───────────────────────────────────────────────────────────
+  const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+  const rateCheck = checkRateLimit(clientIp);
+
+  if (!rateCheck.allowed) {
+    const retryAfterSec = Math.ceil((rateCheck.resetAt - Date.now()) / 1000);
+    res.setHeader('Retry-After', retryAfterSec);
+    return res.status(429).json({
+      success: false,
+      message: 'Too many requests. Please wait a few minutes before trying again.',
+      retryAfterSeconds: retryAfterSec,
+    });
+  }
+
   try {
     // ── 1. Validate environment variables ─────────────────────────────────
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) {
-      console.error('[appointment] RESEND_API_KEY is missing from environment variables.');
+      console.error('[appointment] RESEND_API_KEY is not configured in environment variables.');
       return res.status(500).json({
         success: false,
-        message: 'Server configuration error: email service not configured. Please contact the hospital directly.',
-        debug: 'RESEND_API_KEY not set in Vercel environment variables.',
+        message: 'Server configuration error. Please contact the hospital directly.',
       });
     }
 
@@ -85,7 +130,7 @@ export default async function handler(req, res) {
     const hospitalResult = await resend.emails.send({
       from: SENDER_EMAIL,
       to: [HOSPITAL_EMAIL],
-      subject: generateHospitalEmailSubject(),
+      subject: generateHospitalEmailSubject({ name, treatment }),
       html: generateHospitalEmailHTML({ name, phone, email, age, gender, treatment, date, time, message }),
     });
 
@@ -93,7 +138,7 @@ export default async function handler(req, res) {
       console.error('[appointment] Hospital email failed:', hospitalResult.error);
       return res.status(500).json({
         success: false,
-        message: `Email delivery failed: ${hospitalResult.error.message || 'Unknown Resend error'}`,
+        message: 'Email delivery failed. Please try again or contact the hospital directly.',
       });
     }
 
@@ -107,7 +152,7 @@ export default async function handler(req, res) {
           from: SENDER_EMAIL,
           to: [email],
           subject: generatePatientEmailSubject(),
-          html: generatePatientEmailHTML({ name, treatment, date, time }),
+          html: generatePatientEmailHTML({ name, phone, treatment, date, time }),
         });
 
         if (patientResult.error) {
@@ -121,7 +166,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // ── 5. Send Telegram notification (non-blocking) ────────────────────
+    // ── 5. Send Telegram notification (non-blocking) ─────────────────────
     let telegramResult = null;
     try {
       telegramResult = await sendTelegramAppointmentNotification(validation.sanitized);
@@ -139,10 +184,10 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error('[appointment] Unexpected error:', err);
+    console.error('[appointment] Unexpected error:', err.message);
     return res.status(500).json({
       success: false,
-      message: err.message || 'Unexpected server error. Please try again or contact the hospital directly.',
+      message: 'Unexpected server error. Please try again or contact the hospital directly.',
     });
   }
 }

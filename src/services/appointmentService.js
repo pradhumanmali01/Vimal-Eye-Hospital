@@ -8,7 +8,7 @@
 export const appointmentService = {
   async submitAppointment(data) {
     try {
-      console.log('[appointmentService] Submitting to /api/appointment:', data.name);
+      console.log('[appointmentService] Submitting to /api/appointment');
 
       const response = await fetch('/api/appointment', {
         method: 'POST',
