@@ -17,10 +17,12 @@ export const appointmentService = {
           name: data.name,
           phone: data.phone,
           email: data.email || '',
+          age: data.age || '',
+          gender: data.gender || '',
           treatment: data.treatment || 'General OPD Enquiry',
           date: data.date || new Date().toISOString().split('T')[0],
           time: data.time || '10:00 AM',
-          message: data.message || `Booked via AI Assistant (Age: ${data.age || 'N/A'}, Gender: ${data.gender || 'N/A'})`,
+          message: data.message || 'Booked via AI Assistant',
         }),
       });
 

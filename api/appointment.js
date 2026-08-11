@@ -75,7 +75,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const { name, phone, email, treatment, date, time, message } = validation.sanitized;
+    const { name, phone, email, age, gender, treatment, date, time, message } = validation.sanitized;
 
     console.log(`[appointment] Processing request for: ${name} | Treatment: ${treatment}`);
 
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
       from: SENDER_EMAIL,
       to: [HOSPITAL_EMAIL],
       subject: generateHospitalEmailSubject(),
-      html: generateHospitalEmailHTML({ name, phone, email, treatment, date, time, message }),
+      html: generateHospitalEmailHTML({ name, phone, email, age, gender, treatment, date, time, message }),
     });
 
     if (hospitalResult.error) {

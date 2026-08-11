@@ -44,9 +44,10 @@ export const hindiTranslations = {
   btnClose: "बंद करें",
 
   // Gender Labels
-  genderMale: "पुरुष (Male)",
-  genderFemale: "महिला (Female)",
-  genderOther: "अन्य (Other)",
+  genderMale: "Male",
+  genderFemale: "Female",
+  genderOther: "Other",
+  genderPreferNotToSay: "Prefer not to say",
 
   // Treatments
   treatmentCat: "🔬 माइक्रो-फेको मोतियाबिंद सर्जरी",

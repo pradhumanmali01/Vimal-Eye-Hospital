@@ -22,13 +22,7 @@ function cleanupCache() {
 export function formatTelegramMessage(appointment) {
   const { name, phone, age, gender, treatment, date, time, message, additionalNotes, appointmentId } = appointment;
 
-  let patientDetailsStr = `Name: ${name || 'N/A'}\nPhone: ${phone || 'N/A'}`;
-  if (age && age !== 'N/A' && String(age).trim() !== '') {
-    patientDetailsStr += `\nAge: ${age}`;
-  }
-  if (gender && gender !== 'N/A' && String(gender).trim() !== '') {
-    patientDetailsStr += `\nGender: ${gender}`;
-  }
+  let patientDetailsStr = `Name: ${name || 'N/A'}\nPhone: ${phone || 'N/A'}\nAge: ${age || 'N/A'}\nGender: ${gender || 'N/A'}`;
 
   const notes = additionalNotes || message;
   const showNotes = notes && notes.trim().length > 0 && !notes.includes('Booking request from Vimal Eye Hospital website modal');

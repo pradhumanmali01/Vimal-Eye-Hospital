@@ -44,9 +44,10 @@ export const marathiTranslations = {
   btnClose: "बंद करा",
 
   // Gender Labels
-  genderMale: "पुरुष (Male)",
-  genderFemale: "स्त्री (Female)",
-  genderOther: "इतर (Other)",
+  genderMale: "Male",
+  genderFemale: "Female",
+  genderOther: "Other",
+  genderPreferNotToSay: "Prefer not to say",
 
   // Treatments
   treatmentCat: "🔬 मायक्रो-फेको मोतीबिंदू शस्त्रक्रिया",

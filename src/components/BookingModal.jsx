@@ -6,8 +6,11 @@ import {
   validateName,
   validatePhone,
   validateEmail,
+  validateAge,
+  validateGender,
   filterNameInput,
   filterPhoneInput,
+  filterAgeInput,
   sanitizeInput,
 } from '../utils/validation';
 
@@ -43,7 +46,7 @@ const getFormattedDate = (offsetDays = 0) => {
 // ─── Validated Field Component ─────────────────────────────────────────────
 function ValidatedField({ id, label, type = 'text', placeholder, value, touched, validResult, onChange, onBlur, autoComplete }) {
   const showError = touched && !validResult.valid;
-  const showSuccess = touched && validResult.valid && value.trim().length > 0;
+  const showSuccess = touched && validResult.valid && String(value).trim().length > 0;
   const inputClass = `apple-text-input${showError ? ' input-error' : ''}${showSuccess ? ' input-valid' : ''}`;
 
   return (
@@ -59,8 +62,10 @@ function ValidatedField({ id, label, type = 'text', placeholder, value, touched,
           onChange={onChange}
           onBlur={onBlur}
           autoComplete={autoComplete}
-          inputMode={type === 'tel' ? 'numeric' : undefined}
-          maxLength={type === 'tel' ? 15 : 80}
+          inputMode={type === 'tel' || type === 'number' ? 'numeric' : undefined}
+          maxLength={type === 'tel' ? 15 : type === 'number' ? 3 : 80}
+          min={type === 'number' ? 1 : undefined}
+          max={type === 'number' ? 120 : undefined}
         />
         {showSuccess && (
           <span className="apple-input-status-icon" style={{ color: '#10B981' }}>
@@ -128,6 +133,69 @@ function OptionalEmailField({ id, label, value, touched, validResult, onChange, 
   );
 }
 
+// ─── Gender Select Field Component ──────────────────────────────────────────
+function GenderSelectField({ id, label, value, touched, validResult, onChange }) {
+  const showError = touched && !validResult.valid;
+  const showSuccess = touched && validResult.valid;
+  const GENDER_OPTIONS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+
+  return (
+    <div className="apple-input-group">
+      <label className="apple-input-label" htmlFor={id}>{label}</label>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginTop: 4 }}>
+        {GENDER_OPTIONS.map((g) => {
+          const isSelected = value === g;
+          return (
+            <button
+              key={g}
+              type="button"
+              onClick={() => onChange(g)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '10px 14px',
+                borderRadius: '14px',
+                border: isSelected
+                  ? '2px solid var(--apple-blue)'
+                  : showError
+                  ? '1.5px solid #EF4444'
+                  : '1.5px solid rgba(0,0,0,0.12)',
+                background: isSelected ? 'rgba(0, 113, 227, 0.08)' : '#FFFFFF',
+                color: isSelected ? 'var(--apple-blue)' : 'var(--text-dark-primary)',
+                fontWeight: isSelected ? 700 : 600,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <div style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: isSelected ? 'var(--apple-blue)' : 'rgba(0,0,0,0.15)',
+                flexShrink: 0
+              }} />
+              {g}
+            </button>
+          );
+        })}
+      </div>
+      {showError && (
+        <div className="apple-input-error-msg" style={{ marginTop: 6 }}>
+          <AlertCircle size={12} /> {validResult.error}
+        </div>
+      )}
+      {showSuccess && (
+        <div className="apple-input-success-msg" style={{ marginTop: 6 }}>
+          <Check size={12} /> Looks good!
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Modal ────────────────────────────────────────────────────────────
 export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
   const [step, setStep] = useState(1);
@@ -138,13 +206,15 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
     name: '',
     phone: '',
     email: '',
+    age: '',
+    gender: '',
     treatmentId: initialTreatmentId || 'cataract',
     date: getFormattedDate(0),
     time: '10:00 AM',
   });
 
   // Touched state
-  const [touched, setTouched] = useState({ name: false, phone: false, email: false });
+  const [touched, setTouched] = useState({ name: false, phone: false, email: false, age: false, gender: false });
   const [forceShowErrors, setForceShowErrors] = useState(false);
 
   // API Submission state
@@ -168,12 +238,16 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
   const nameResult = validateName(form.name);
   const phoneResult = validatePhone(form.phone);
   const emailResult = validateEmail(form.email);
-  const step1Valid = nameResult.valid && phoneResult.valid && emailResult.valid;
+  const ageResult = validateAge(form.age);
+  const genderResult = validateGender(form.gender);
+  const step1Valid = nameResult.valid && phoneResult.valid && emailResult.valid && ageResult.valid && genderResult.valid;
 
   const eff = {
     name: touched.name || forceShowErrors,
     phone: touched.phone || forceShowErrors,
     email: touched.email || forceShowErrors,
+    age: touched.age || forceShowErrors,
+    gender: touched.gender || forceShowErrors,
   };
 
   const handleNameChange = (e) => {
@@ -190,6 +264,16 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
     setForm(f => ({ ...f, email: e.target.value }));
   };
 
+  const handleAgeChange = (e) => {
+    const filtered = filterAgeInput(e.target.value);
+    setForm(f => ({ ...f, age: filtered }));
+  };
+
+  const handleGenderChange = (selectedGender) => {
+    setForm(f => ({ ...f, gender: selectedGender }));
+    setTouched(t => ({ ...t, gender: true }));
+  };
+
   const selectedTreatment = treatmentsData.find(t => t.id === form.treatmentId) || treatmentsData[0];
 
   // Submit appointment to Resend Backend API
@@ -201,6 +285,8 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
       name: form.name.trim(),
       phone: form.phone.trim(),
       email: form.email.trim(),
+      age: form.age.trim(),
+      gender: form.gender.trim(),
       treatment: selectedTreatment.title,
       date: form.date,
       time: form.time,
@@ -262,12 +348,14 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
       setIsSubmitting(false);
       setApiError(null);
       setIsClosing(false);
-      setTouched({ name: false, phone: false, email: false });
+      setTouched({ name: false, phone: false, email: false, age: false, gender: false });
       setForceShowErrors(false);
       setForm({
         name: '',
         phone: '',
         email: '',
+        age: '',
+        gender: '',
         treatmentId: initialTreatmentId || 'cataract',
         date: getFormattedDate(0),
         time: '10:00 AM',
@@ -413,6 +501,26 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
                     onChange={handleEmailChange}
                     onBlur={() => setTouched(t => ({ ...t, email: true }))}
                   />
+                  <ValidatedField
+                    id="bk-age"
+                    label="Age *"
+                    type="number"
+                    placeholder="e.g. 22"
+                    value={form.age}
+                    touched={eff.age}
+                    validResult={ageResult}
+                    onChange={handleAgeChange}
+                    onBlur={() => setTouched(t => ({ ...t, age: true }))}
+                    autoComplete="off"
+                  />
+                  <GenderSelectField
+                    id="bk-gender"
+                    label="Gender *"
+                    value={form.gender}
+                    touched={eff.gender}
+                    validResult={genderResult}
+                    onChange={handleGenderChange}
+                  />
                 </div>
               )}
 
@@ -504,6 +612,9 @@ export default function BookingModal({ isOpen, onClose, initialTreatmentId }) {
                     {[
                       { label: 'Patient Name', value: form.name },
                       { label: 'Phone Number', value: form.phone },
+                      ...(form.email ? [{ label: 'Email', value: form.email }] : []),
+                      { label: 'Age', value: form.age },
+                      { label: 'Gender', value: form.gender },
                       { label: 'Treatment', value: selectedTreatment.title, blue: true },
                       { label: 'Date & Slot', value: `${form.date} at ${form.time}` },
                     ].map((row, i, arr) => (

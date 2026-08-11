@@ -7,7 +7,7 @@ export function generateHospitalEmailSubject() {
   return `📅 New Appointment Request`;
 }
 
-export function generateHospitalEmailHTML({ name, phone, email, treatment, date, time, message }) {
+export function generateHospitalEmailHTML({ name, phone, email, age, gender, treatment, date, time, message }) {
   const safeMessage = message ? message.replace(/</g, '&lt;').replace(/>/g, '&gt;') : 'None provided';
 
   return `
@@ -57,6 +57,14 @@ export function generateHospitalEmailHTML({ name, phone, email, treatment, date,
         <div class="detail-row">
           <span class="label">📧 Email Address</span>
           <span class="value">${email ? `<a href="mailto:${email}" style="color: #0071E3; text-decoration: none;">${email}</a>` : 'Not provided'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">🎂 Patient Age</span>
+          <span class="value">${age ? `${age} Years` : 'Not provided'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">🚻 Gender</span>
+          <span class="value">${gender || 'Not provided'}</span>
         </div>
         <div class="detail-row">
           <span class="label">👁 Treatment Required</span>

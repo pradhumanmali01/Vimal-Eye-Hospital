@@ -30,7 +30,7 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
     phone: '',
     email: '',
     age: '',
-    gender: 'Male',
+    gender: '',
     treatment: 'Micro-Phaco Cataract Surgery',
     date: new Date().toISOString().split('T')[0],
     time: '10:00 AM',

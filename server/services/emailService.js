@@ -12,7 +12,7 @@ const HOSPITAL_EMAIL = process.env.HOSPITAL_EMAIL || 'pradhumanmali2@gmail.com';
 const SENDER_EMAIL = process.env.SENDER_EMAIL || 'Vimal Eye Hospital <onboarding@resend.dev>';
 
 export async function sendAppointmentEmails(appointmentData) {
-  const { name, phone, email, treatment, date, time, message } = appointmentData;
+  const { name, phone, email, age, gender, treatment, date, time, message } = appointmentData;
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -22,7 +22,7 @@ export async function sendAppointmentEmails(appointmentData) {
 
   // 1. Send Notification Email to Hospital
   const hospitalSubject = generateHospitalEmailSubject();
-  const hospitalHtml = generateHospitalEmailHTML({ name, phone, email, treatment, date, time, message });
+  const hospitalHtml = generateHospitalEmailHTML({ name, phone, email, age, gender, treatment, date, time, message });
 
   console.log(`[EmailService] Sending hospital notification to ${HOSPITAL_EMAIL}...`);
 

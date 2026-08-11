@@ -47,6 +47,7 @@ export const englishTranslations = {
   genderMale: "Male",
   genderFemale: "Female",
   genderOther: "Other",
+  genderPreferNotToSay: "Prefer not to say",
 
   // Treatments
   treatmentCat: "🔬 Micro-Phaco Cataract Surgery",

@@ -87,10 +87,47 @@ export function validateEmail(raw) {
   return { valid: true, error: null, cleaned: value };
 }
 
+// ─── Age Validator ────────────────────────────────────────────────────────
+export function validateAge(raw) {
+  const value = String(raw || '').trim();
+
+  if (!value) {
+    return { valid: false, error: 'Please enter your age.' };
+  }
+  if (!/^\d+$/.test(value)) {
+    return { valid: false, error: 'Please enter a valid age between 1 and 120.' };
+  }
+  const ageNum = Number(value);
+  if (ageNum < 1 || ageNum > 120) {
+    return { valid: false, error: 'Please enter a valid age between 1 and 120.' };
+  }
+  return { valid: true, error: null, cleaned: String(ageNum) };
+}
+
+// ─── Gender Validator ──────────────────────────────────────────────────────
+export const ALLOWED_GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+
+export function validateGender(raw) {
+  const value = String(raw || '').trim();
+
+  if (!value) {
+    return { valid: false, error: 'Please select your gender.' };
+  }
+  if (!ALLOWED_GENDERS.includes(value)) {
+    return { valid: false, error: 'Please select a valid gender option.' };
+  }
+  return { valid: true, error: null, cleaned: value };
+}
+
 // ─── Phone Input Filter — prevents non-digit characters from being typed ──
 export function filterPhoneInput(value) {
   // Allow digits, +, and spaces only while user is typing
   return value.replace(/[^\d+\s]/g, '');
+}
+
+// ─── Age Input Filter — prevents non-digit characters and limits length ────
+export function filterAgeInput(value) {
+  return value.replace(/[^\d]/g, '').slice(0, 3);
 }
 
 // ─── Name Input Filter — prevents digits and special chars while typing ────
@@ -100,14 +137,19 @@ export function filterNameInput(value) {
 }
 
 // ─── Validate Full Step 1 ─────────────────────────────────────────────────
-export function validateStep1({ name, phone, email }) {
-  const nameResult = validateName(name);
-  const phoneResult = validatePhone(phone);
-  const emailResult = validateEmail(email);
+export function validateStep1({ name, phone, email, age, gender }) {
+  const nameResult = validateName(name || '');
+  const phoneResult = validatePhone(phone || '');
+  const emailResult = validateEmail(email || '');
+  const ageResult = validateAge(age || '');
+  const genderResult = validateGender(gender || '');
   return {
     name: nameResult,
     phone: phoneResult,
     email: emailResult,
-    allValid: nameResult.valid && phoneResult.valid && emailResult.valid,
+    age: ageResult,
+    gender: genderResult,
+    allValid: nameResult.valid && phoneResult.valid && emailResult.valid && ageResult.valid && genderResult.valid,
   };
 }
+

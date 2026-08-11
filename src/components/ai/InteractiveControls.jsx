@@ -64,19 +64,19 @@ export default function InteractiveControls({ step, onSelect }) {
   // 2. Gender Selector
   if (step === 'gender') {
     const genders = [
-      { id: 'male', label: texts.genderMale },
-      { id: 'female', label: texts.genderFemale },
-      { id: 'other', label: texts.genderOther },
+      { id: 'male', label: texts.genderMale || 'Male' },
+      { id: 'female', label: texts.genderFemale || 'Female' },
+      { id: 'other', label: texts.genderOther || 'Other' },
+      { id: 'pnts', label: texts.genderPreferNotToSay || 'Prefer not to say' },
     ];
 
     return (
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', width: '100%', marginTop: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, width: '100%', marginTop: 8 }}>
         {genders.map(g => (
           <button
             key={g.id}
             onClick={() => onSelect(g.label)}
             style={{
-              flex: 1,
               padding: '10px 14px',
               borderRadius: '20px',
               border: '1px solid var(--apple-blue)',

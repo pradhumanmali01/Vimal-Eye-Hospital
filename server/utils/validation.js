@@ -47,17 +47,39 @@ export function validateAppointmentData(data) {
     }
   }
 
-  // 4. Treatment Validation
+  // 4. Age Validation (Required: integer 1 - 120)
+  const ageStr = (data.age || '').toString().trim();
+  if (!ageStr) {
+    errors.age = 'Please enter your age.';
+  } else if (!/^\d+$/.test(ageStr)) {
+    errors.age = 'Please enter a valid age between 1 and 120.';
+  } else {
+    const ageNum = Number(ageStr);
+    if (ageNum < 1 || ageNum > 120) {
+      errors.age = 'Please enter a valid age between 1 and 120.';
+    }
+  }
+
+  // 5. Gender Validation (Required: Male, Female, Other, Prefer not to say)
+  const genderStr = (data.gender || '').toString().trim();
+  const ALLOWED_GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+  if (!genderStr) {
+    errors.gender = 'Please select your gender.';
+  } else if (!ALLOWED_GENDERS.includes(genderStr)) {
+    errors.gender = 'Please select a valid gender option.';
+  }
+
+  // 6. Treatment Validation
   if (!treatment) {
     errors.treatment = 'Treatment selection is required.';
   }
 
-  // 5. Preferred Date Validation
+  // 7. Preferred Date Validation
   if (!date) {
     errors.date = 'Preferred date is required.';
   }
 
-  // 6. Preferred Time Validation
+  // 8. Preferred Time Validation
   if (!time) {
     errors.time = 'Preferred time slot is required.';
   }
