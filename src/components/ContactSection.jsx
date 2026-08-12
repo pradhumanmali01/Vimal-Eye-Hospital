@@ -98,12 +98,14 @@ function CustomAppleDropdown({ value, options, onChange }) {
 
 // ─── Main Contact Section ──────────────────────────────────────────────────
 export default function ContactSection({ onOpenBooking }) {
+  const [formRenderTime] = useState(() => Date.now());
   const [form, setForm] = useState({
     name: '',
     phone: '',
     email: '',
     subject: 'General OPD Enquiry',
     message: '',
+    website_hp: '',
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -141,6 +143,8 @@ export default function ContactSection({ onOpenBooking }) {
           email: form.email.trim(),
           subject: form.subject || 'General OPD Enquiry',
           message: form.message.trim() || 'Enquiry submitted via Contact Section',
+          website_hp: form.website_hp,
+          form_render_time: formRenderTime,
         }),
       });
 
@@ -291,6 +295,17 @@ export default function ContactSection({ onOpenBooking }) {
               </div>
             ) : (
               <form className="apple-contact-form-grid" onSubmit={handleSubmit}>
+
+                {/* Honeypot field (hidden from real users, tricks automated spam bots) */}
+                <input
+                  type="text"
+                  name="website_hp"
+                  value={form.website_hp || ''}
+                  onChange={e => setForm({ ...form, website_hp: e.target.value })}
+                  style={{ display: 'none', position: 'absolute', left: '-9999px' }}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
 
                 {/* Name & Phone Row */}
                 <div className="apple-contact-input-row">

@@ -6,6 +6,7 @@
 import { Resend } from 'resend';
 import { generateEnquiryEmailSubject, generateEnquiryEmailHTML } from '../emails/EnquiryEmailTemplate.js';
 import { sendTelegramEnquiryNotification } from '../services/telegramService.js';
+import { checkAndReserveEnquiryQuota } from '../services/enquiryAbuseGuard.js';
 
 export async function createEnquiry(req, res) {
   try {
@@ -21,6 +22,27 @@ export async function createEnquiry(req, res) {
     }
 
     const { name, phone, email, subject, message } = enquiryData;
+    const body = req.body || {};
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+
+    // Persistent Abuse Protection Check & Reserve
+    const abuseCheck = await checkAndReserveEnquiryQuota({
+      ip: clientIp,
+      phone,
+      email,
+      subject,
+      message,
+      honeypot: body.website_hp,
+      formRenderTime: body.form_render_time,
+    });
+
+    if (!abuseCheck.allowed) {
+      console.warn(`[EnquiryController] Blocked by EnquiryAbuseGuard (${abuseCheck.reason}) for IP ${clientIp}`);
+      return res.status(abuseCheck.status || 429).json({
+        success: false,
+        message: abuseCheck.message || 'Too many requests. Please wait a few minutes before trying again.',
+      });
+    }
 
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
