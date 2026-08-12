@@ -23,12 +23,30 @@ export function useScrollReveal() {
       }
     );
 
-    const elements = document.querySelectorAll('.reveal-on-scroll');
-    elements.forEach((el) => observer.observe(el));
+    const observeElements = () => {
+      const elements = document.querySelectorAll('.reveal-on-scroll');
+      elements.forEach((el) => {
+        if (!el.classList.contains('is-visible')) {
+          observer.observe(el);
+        }
+      });
+    };
+
+    observeElements();
+
+    // Observe DOM mutations so dynamic content (e.g. gallery filter switches) triggers reveal
+    const mutationObserver = new MutationObserver(() => {
+      observeElements();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
 
     return () => {
-      elements.forEach((el) => observer.unobserve(el));
       observer.disconnect();
+      mutationObserver.disconnect();
     };
   }, []);
 }

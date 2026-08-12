@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
-import { Compass, Sparkles, Eye, ArrowUpRight, Maximize2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Compass, Sparkles } from 'lucide-react';
 import { virtualTourRooms, virtualTourCategories } from '../data/virtualTourData';
 import PanoramaViewer360 from './PanoramaViewer360';
 
 export default function GallerySection() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+
+  // Re-trigger visibility reveal whenever activeCategory changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const elements = document.querySelectorAll('#gallery .reveal-on-scroll');
+      elements.forEach((el) => el.classList.add('is-visible'));
+    }, 20);
+    return () => clearTimeout(timer);
+  }, [activeCategory]);
 
   // Filter rooms
   const filteredRooms = activeCategory === 'All'
@@ -132,6 +141,11 @@ export default function GallerySection() {
           ))}
         </div>
 
+        {gridRooms.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)' }}>
+            No 360° tour items available in this category.
+          </div>
+        )}
       </div>
 
       {/* 360° Equirectangular Fullscreen Viewer Portal */}
