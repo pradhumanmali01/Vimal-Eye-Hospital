@@ -11,6 +11,29 @@ export const HOSPITAL_IDENTITY = {
   mr: "विमल आय हॉस्पिटल",
 };
 
+/**
+ * Normalizes query string for typo tolerance and word concatenation fixes.
+ * E.g., "iwatnto book appointmenr" -> "i want to book appointment"
+ * E.g., "iwant to book appointmnet" -> "i want to book appointment"
+ */
+export function normalizeQuery(text = '') {
+  if (!text) return '';
+  let clean = String(text).trim().toLowerCase();
+
+  // 1. Common spacing / word concatenation fixes
+  clean = clean
+    .replace(/\biwatnto\b|\biwantto\b|\biwntto\b|\biwnt\b|\biwatnt\b|\biwnt\b/g, 'i want to ')
+    .replace(/\biwant\b/g, 'i want ')
+    .replace(/\bappointmenr\b|\bappointmnet\b|\bappointmnt\b|\bapointmnt\b|\bapoitment\b|\bappoitment\b|\bapointmet\b|\bapointement\b|\bappointmet\b|\bapointment\b/g, 'appointment')
+    .replace(/\bboook\b|\bboking\b|\bbooke\b/g, 'book')
+    .replace(/\bkarwani\b|\bkarwana\b|\bkrni\b|\bkrna\b|\bkrdo\b|\bkrnaa\b/g, 'karni')
+    .replace(/\bchaiye\b|\bchahiye\b|\bchahiye\b/g, 'chahiye');
+
+  // Collapse multiple spaces
+  clean = clean.replace(/\s+/g, ' ').trim();
+  return clean;
+}
+
 // Common Appointment / Eye Checkup Query Patterns
 const APPOINTMENT_PATTERNS = [
   /appoint/i,
@@ -18,8 +41,8 @@ const APPOINTMENT_PATTERNS = [
   /apoit/i,
   /appoit/i,
   /apont/i,
-  /book/i,
-  /boking/i,
+  /\bbook\b/i,
+  /\bboking\b/i,
   /check.*eye/i,
   /eye.*check/i,
   /aankh.*check/i,
@@ -65,8 +88,10 @@ const GREETING_PATTERNS = [
 ];
 
 export function classifyIntent(query = '') {
-  const q = query.trim().toLowerCase();
-  if (!q) return { intent: 'UNKNOWN', confidence: 0 };
+  const raw = String(query).trim();
+  if (!raw) return { intent: 'UNKNOWN', confidence: 0 };
+
+  const q = normalizeQuery(raw);
 
   // 1. Check Off-Topic / Casual Conversation (Must filter out casual phrases like "my baby" before medical analysis)
   // Exception: If user explicitly mentions medical child symptoms like "baby eye red" or "baby squint"
@@ -98,7 +123,7 @@ export function classifyIntent(query = '') {
     return { intent: 'CONTACT', confidence: 0.95 };
   }
 
-  if (/fee|cost|price|charge|fees|kitna|paise|fees/i.test(q)) {
+  if (/fee|cost|price|charge|fees|kitna|paise/i.test(q)) {
     return { intent: 'CONSULTATION_FEE', confidence: 0.92 };
   }
 

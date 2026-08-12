@@ -184,8 +184,9 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
     setBookingToken(null);
     setBookingTimestamp(null);
 
-    // If patient name already known in session
-    if (patientData.name) {
+    // If patient name already known in session (and is a valid human name, not an intent phrase)
+    const valName = validationService.validateName(patientData.name);
+    if (patientData.name && valName.valid) {
       if (patientData.phone) {
         setFlowStepIndex(2); // Ask Age
         addMessage({
@@ -204,6 +205,8 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
       return;
     }
 
+    // Reset invalid or empty name
+    setPatientData(prev => ({ ...prev, name: '' }));
     addMessage({
       sender: 'bot',
       text: activeT.stepNamePrompt,
@@ -216,6 +219,17 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
     const currentStep = APPOINTMENT_STEPS[flowStepIndex];
 
     if (currentStep === 'name') {
+      // Intercept repeated appointment intent sentences so they are not treated as the patient's name
+      const classification = classifyIntent(userText);
+      if (classification.intent === 'START_APPOINTMENT_FLOW') {
+        addMessage({
+          sender: 'bot',
+          text: `Bilkul! Main aapki Vimal Eye Hospital mein appointment book karne mein madad karta hoon. Kripya patient ka **Full Name** (पूरा नाम) batayein.`,
+          step: 'name',
+        });
+        return;
+      }
+
       const val = validationService.validateName(userText);
       if (!val.valid) {
         addMessage({ sender: 'bot', text: `⚠️ ${activeT.valNameErr}` });

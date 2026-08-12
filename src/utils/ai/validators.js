@@ -8,6 +8,17 @@ export function validateName(name) {
   if (trimmed.length < 2) return { valid: false, error: "Name must be at least 2 characters." };
   if (/\d/.test(trimmed)) return { valid: false, error: "Name must contain alphabets only (no numbers)." };
   if (/[^A-Za-z\s'\-]/.test(trimmed)) return { valid: false, error: "Name contains invalid special characters." };
+
+  // Disambiguate intent phrases/sentences from actual patient names
+  const lower = trimmed.toLowerCase();
+  const INVALID_NAME_WORDS = [
+    'appointment', 'apointmnt', 'apoitment', 'appoitment', 'booking', 'book',
+    'checkup', 'check', 'doctor', 'dikhana', 'chahiye', 'chaiye', 'want', 'need', 'please'
+  ];
+  if (INVALID_NAME_WORDS.some(w => lower.includes(w))) {
+    return { valid: false, error: "Please enter a valid patient full name." };
+  }
+
   return { valid: true, sanitized: trimmed };
 }
 
