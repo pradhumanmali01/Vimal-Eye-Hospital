@@ -1,6 +1,4 @@
-/**
- * LIVE INPUT VALIDATION UTILITIES FOR AI ASSISTANT
- */
+import { classifyIntent } from './intentClassifier.js';
 
 export function validateName(name) {
   const trimmed = (name || '').trim();
@@ -9,14 +7,46 @@ export function validateName(name) {
   if (/\d/.test(trimmed)) return { valid: false, error: "Name must contain alphabets only (no numbers)." };
   if (/[^A-Za-z\s'\-]/.test(trimmed)) return { valid: false, error: "Name contains invalid special characters." };
 
-  // Disambiguate intent phrases/sentences from actual patient names
   const lower = trimmed.toLowerCase();
+
+  // Single-word social tokens, greetings, and conversational fillers
+  const SOCIAL_TOKENS = [
+    'hi', 'hey', 'hello', 'ok', 'okay', 'yes', 'no', 'thanks', 'thank', 'thankyou',
+    'namaste', 'namaskar', 'pls', 'please', 'test', 'testing', 'good', 'bye', 'goodbye',
+    'sir', 'maam', 'madam', 'bro', 'buddy', 'boss', 'kya', 'kaha', 'kab', 'kaise',
+    'kon', 'karo', 'krdo', 'ha', 'haa', 'nahi', 'nahin', 'na', 'info', 'help',
+    'hi there', 'hello there', 'hey there'
+  ];
+  if (SOCIAL_TOKENS.includes(lower)) {
+    return { valid: false, error: "Please enter the patient's full name (e.g. Rahul Sharma)." };
+  }
+
+  // Disambiguate hospital intent phrases/words from actual patient names
   const INVALID_NAME_WORDS = [
     'appointment', 'apointmnt', 'apoitment', 'appoitment', 'booking', 'book',
-    'checkup', 'check', 'doctor', 'dikhana', 'chahiye', 'chaiye', 'want', 'need', 'please'
+    'checkup', 'check', 'doctor', 'dikhana', 'chahiye', 'chaiye', 'want', 'need',
+    'hospital', 'timing', 'timings', 'opd', 'treatment', 'fees', 'cost', 'price',
+    'address', 'location', 'map', 'contact', 'phone', 'number', 'call', 'emergency',
+    'lasik', 'cataract', 'glaucoma', 'retina', 'consultation', 'consult'
   ];
   if (INVALID_NAME_WORDS.some(w => lower.includes(w))) {
     return { valid: false, error: "Please enter a valid patient full name." };
+  }
+
+  // Semantic intent check: reject non-name intents (greetings, QA, hospital questions)
+  const classification = classifyIntent(trimmed);
+  const NON_NAME_INTENTS = [
+    'GREETING',
+    'OFF_TOPIC',
+    'START_APPOINTMENT_FLOW',
+    'OPD_TIMINGS',
+    'LOCATION',
+    'CONTACT',
+    'CONSULTATION_FEE',
+    'DOCTORS',
+  ];
+  if (NON_NAME_INTENTS.includes(classification.intent)) {
+    return { valid: false, error: "Please enter the patient's full name." };
   }
 
   return { valid: true, sanitized: trimmed };

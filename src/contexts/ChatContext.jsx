@@ -30,6 +30,7 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
 
   // Server-issued authorization token
   const [bookingToken, setBookingToken] = useState(null);
+  const [bookingTimestamp, setBookingTimestamp] = useState(null);
 
   // Session Memory for Patient Data
   const [patientData, setPatientData] = useState({
@@ -233,12 +234,16 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
 
       const val = validationService.validateName(userText);
       if (!val.valid) {
-        addMessage({ sender: 'bot', text: `⚠️ ${activeT.valNameErr}` });
+        addMessage({
+          sender: 'bot',
+          text: `⚠️ ${val.error || activeT.valNameErr}\n\n${activeT.stepNamePrompt || 'Please enter the patient\'s **Full Name**:'}`,
+          step: 'name',
+        });
         return;
       }
       updatePatientData('name', val.sanitized);
       setFlowStepIndex(1);
-      addMessage({ sender: 'bot', text: activeT.stepPhonePrompt.replace('{name}', val.sanitized) });
+      addMessage({ sender: 'bot', text: activeT.stepPhonePrompt.replace('{name}', val.sanitized), step: 'phone' });
       return;
     }
 
