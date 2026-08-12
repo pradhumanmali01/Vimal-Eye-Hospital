@@ -5,41 +5,34 @@
  */
 import { hospitalConfig } from '../data/hospitalConfig';
 import { SYSTEM_TEXTS } from '../utils/ai/constants';
-
-// Key intent keywords for Appointment Flow
-const APPOINTMENT_KEYWORDS = [
-  'book appointment', 'need doctor', 'need consultation', 'eye checkup',
-  'appointment', 'visit hospital', 'consultation', 'book', 'booking',
-  'अपॉइंटमेंट बुक', 'डॉक्टर चाहिए', 'जांच', 'अपॉइंटमेंट', 'भेट'
-];
-
-// Key intent keywords for Enquiry Flow
-const ENQUIRY_KEYWORDS = [
-  'send enquiry', 'enquiry', 'ask question', 'contact team',
-  'पूछताछ', 'सवाल', 'चौकशी'
-];
+import { classifyIntent, getOffTopicResponse, getGreetingResponse } from '../utils/ai/intentClassifier';
 
 export const chatService = {
   /**
    * Streaming entry point for NVIDIA Nemotron AI completion
    */
   async streamResponse({ userQuery, lang = 'en', messages = [], onChunk }) {
-    const q = (userQuery || '').toLowerCase().trim();
+    const q = (userQuery || '').trim();
 
-    // Fast-path client intent check for immediate workflow start
-    const isAppointmentIntent = APPOINTMENT_KEYWORDS.some(kw => q.includes(kw));
-    if (isAppointmentIntent) {
+    // 1. Classify Intent deterministically for instant responsiveness
+    const classification = classifyIntent(q);
+
+    if (classification.intent === 'OFF_TOPIC') {
+      const respText = getOffTopicResponse(lang);
+      if (onChunk) onChunk(respText);
+      return { intent: 'OFF_TOPIC', text: respText };
+    }
+
+    if (classification.intent === 'GREETING') {
+      const respText = getGreetingResponse(lang);
+      if (onChunk) onChunk(respText);
+      return { intent: 'GREETING', text: respText };
+    }
+
+    if (classification.intent === 'START_APPOINTMENT_FLOW') {
       return {
         intent: 'START_APPOINTMENT_FLOW',
         text: SYSTEM_TEXTS[lang]?.bookingStarted || 'Let us schedule your appointment.',
-      };
-    }
-
-    const isEnquiryIntent = ENQUIRY_KEYWORDS.some(kw => q.includes(kw));
-    if (isEnquiryIntent) {
-      return {
-        intent: 'START_ENQUIRY_FLOW',
-        text: SYSTEM_TEXTS[lang]?.enquiryStarted || 'How can our hospital team assist you?',
       };
     }
 
@@ -123,27 +116,25 @@ export const chatService = {
    * Main entry point for generating AI response
    */
   async generateResponse({ userQuery, lang = 'en', memory = {} }) {
-    const q = (userQuery || '').toLowerCase().trim();
+    const q = (userQuery || '').trim();
 
-    // 1. Check Appointment Flow Intent
-    const isAppointmentIntent = APPOINTMENT_KEYWORDS.some(kw => q.includes(kw));
-    if (isAppointmentIntent) {
+    const classification = classifyIntent(q);
+
+    if (classification.intent === 'OFF_TOPIC') {
+      return { intent: 'OFF_TOPIC', text: getOffTopicResponse(lang) };
+    }
+
+    if (classification.intent === 'GREETING') {
+      return { intent: 'GREETING', text: getGreetingResponse(lang) };
+    }
+
+    if (classification.intent === 'START_APPOINTMENT_FLOW') {
       return {
         intent: 'START_APPOINTMENT_FLOW',
-        text: SYSTEM_TEXTS[lang].bookingStarted,
+        text: SYSTEM_TEXTS[lang]?.bookingStarted || 'Let us schedule your appointment.',
       };
     }
 
-    // 2. Check Enquiry Flow Intent
-    const isEnquiryIntent = ENQUIRY_KEYWORDS.some(kw => q.includes(kw));
-    if (isEnquiryIntent) {
-      return {
-        intent: 'START_ENQUIRY_FLOW',
-        text: SYSTEM_TEXTS[lang].enquiryStarted,
-      };
-    }
-
-    // 3. Match Knowledge Base (Doctors, Treatments, Fees, Timings, Location, Contact, FAQs)
     const responseText = this.queryHospitalKnowledgeBase(q, lang, memory);
 
     return {
