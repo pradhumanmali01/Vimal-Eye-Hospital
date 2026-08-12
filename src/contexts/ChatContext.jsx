@@ -136,19 +136,33 @@ export function ChatProvider({ children, onOpenGlobalBooking }) {
         return;
       }
 
-      // Standard AI Query Processing
-      const result = await chatService.generateResponse({
+      // Standard AI Query Processing with real-time progressive streaming
+      let botMsgObj = null;
+
+      const result = await chatService.streamResponse({
         userQuery: text,
         lang,
-        memory: patientData,
+        messages,
+        onChunk: (chunkText) => {
+          setIsTyping(false);
+          if (!botMsgObj) {
+            botMsgObj = addMessage({ sender: 'bot', text: chunkText });
+          } else {
+            botMsgObj.text += chunkText;
+            setMessages(prev => prev.map(m => (m.id === botMsgObj.id ? { ...m, text: botMsgObj.text } : m)));
+            scrollToBottom();
+          }
+        },
       });
 
       if (result.intent === 'START_APPOINTMENT_FLOW') {
         startAppointmentFlow();
       } else if (result.intent === 'START_ENQUIRY_FLOW') {
         startEnquiryFlow();
-      } else {
+      } else if (!botMsgObj && result.text) {
         addMessage({ sender: 'bot', text: result.text });
+      } else if (botMsgObj && result.text && result.text !== botMsgObj.text) {
+        setMessages(prev => prev.map(m => (m.id === botMsgObj.id ? { ...m, text: result.text } : m)));
       }
     } catch (err) {
       console.error('[ChatContext] Process error:', err);

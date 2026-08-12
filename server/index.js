@@ -9,6 +9,7 @@ import express from 'express';
 import cors from 'cors';
 import appointmentRoutes from './routes/appointmentRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
+import aiChatRoutes from './routes/aiChatRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +27,7 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api', appointmentRoutes);
 app.use('/api', enquiryRoutes);
+app.use('/api', aiChatRoutes);
 
 // Global 404 Handler
 app.use((req, res) => {

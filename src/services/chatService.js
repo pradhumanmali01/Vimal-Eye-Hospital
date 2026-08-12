@@ -21,8 +21,106 @@ const ENQUIRY_KEYWORDS = [
 
 export const chatService = {
   /**
+   * Streaming entry point for NVIDIA Nemotron AI completion
+   */
+  async streamResponse({ userQuery, lang = 'en', messages = [], onChunk }) {
+    const q = (userQuery || '').toLowerCase().trim();
+
+    // Fast-path client intent check for immediate workflow start
+    const isAppointmentIntent = APPOINTMENT_KEYWORDS.some(kw => q.includes(kw));
+    if (isAppointmentIntent) {
+      return {
+        intent: 'START_APPOINTMENT_FLOW',
+        text: SYSTEM_TEXTS[lang]?.bookingStarted || 'Let us schedule your appointment.',
+      };
+    }
+
+    const isEnquiryIntent = ENQUIRY_KEYWORDS.some(kw => q.includes(kw));
+    if (isEnquiryIntent) {
+      return {
+        intent: 'START_ENQUIRY_FLOW',
+        text: SYSTEM_TEXTS[lang]?.enquiryStarted || 'How can our hospital team assist you?',
+      };
+    }
+
+    try {
+      const response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userQuery,
+          lang,
+          messages: messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text })),
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error(`Server returned status ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let fullText = '';
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data: ')) {
+            const dataStr = trimmed.slice(6);
+            if (dataStr === '[DONE]') break;
+
+            try {
+              const json = JSON.parse(dataStr);
+              if (json.content) {
+                fullText += json.content;
+                if (onChunk) {
+                  onChunk(json.content);
+                }
+              }
+            } catch (e) {
+              // Ignore invalid JSON chunk
+            }
+          }
+        }
+      }
+
+      // Check intent signal in full response
+      let detectedIntent = 'GENERAL_QA';
+      let cleanText = fullText;
+
+      if (fullText.includes('[INTENT:START_APPOINTMENT_FLOW]')) {
+        detectedIntent = 'START_APPOINTMENT_FLOW';
+        cleanText = fullText.replace(/\[INTENT:START_APPOINTMENT_FLOW\]/g, '').trim();
+      } else if (fullText.includes('[INTENT:START_ENQUIRY_FLOW]')) {
+        detectedIntent = 'START_ENQUIRY_FLOW';
+        cleanText = fullText.replace(/\[INTENT:START_ENQUIRY_FLOW\]/g, '').trim();
+      }
+
+      return {
+        intent: detectedIntent,
+        text: cleanText || this.queryHospitalKnowledgeBase(q, lang, {}),
+      };
+    } catch (err) {
+      console.warn('[chatService] NVIDIA streaming endpoint fallback:', err.message);
+      const fallbackText = this.queryHospitalKnowledgeBase(q, lang, {});
+      if (onChunk) onChunk(fallbackText);
+      return {
+        intent: 'GENERAL_QA',
+        text: fallbackText,
+      };
+    }
+  },
+
+  /**
    * Main entry point for generating AI response
-   * Can be swapped to call OpenAI / Gemini API in the future without changing frontend components
    */
   async generateResponse({ userQuery, lang = 'en', memory = {} }) {
     const q = (userQuery || '').toLowerCase().trim();
