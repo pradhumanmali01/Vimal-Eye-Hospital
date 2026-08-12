@@ -11,6 +11,7 @@ import { appointmentService } from '../services/appointmentService';
 import { contactService } from '../services/contactService';
 import { validationService } from '../services/validationService';
 import { formatTime } from '../utils/ai/formatters';
+import { classifyIntent } from '../utils/ai/intentClassifier';
 
 const ChatContext = createContext();
 
