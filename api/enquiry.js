@@ -17,6 +17,7 @@
 import { Resend } from 'resend';
 import { validateEnquiryData } from '../server/utils/enquiryValidation.js';
 import { generateEnquiryEmailSubject, generateEnquiryEmailHTML } from '../server/emails/EnquiryEmailTemplate.js';
+import { sendTelegramEnquiryNotification } from '../server/services/telegramService.js';
 
 // ─── In-Memory Rate Limiter (best-effort per Vercel instance) ────────────────
 // NOTE: For true distributed rate limiting across Vercel serverless instances,
@@ -129,6 +130,20 @@ export default async function handler(req, res) {
     }
 
     console.log(`[enquiry] Enquiry email sent. ID: ${result.data?.id}`);
+
+    // ── Send Telegram notification (non-blocking) ──────────────────────────────
+    try {
+      await sendTelegramEnquiryNotification({
+        name,
+        phone,
+        email,
+        subject,
+        message,
+        enquiryId: result.data?.id,
+      });
+    } catch (telegramErr) {
+      console.error('[enquiry] Telegram notification non-fatal error:', telegramErr.message);
+    }
 
     return res.status(200).json({
       success: true,

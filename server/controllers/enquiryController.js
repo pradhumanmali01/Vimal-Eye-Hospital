@@ -5,6 +5,7 @@
  */
 import { Resend } from 'resend';
 import { generateEnquiryEmailSubject, generateEnquiryEmailHTML } from '../emails/EnquiryEmailTemplate.js';
+import { sendTelegramEnquiryNotification } from '../services/telegramService.js';
 
 export async function createEnquiry(req, res) {
   try {
@@ -51,6 +52,20 @@ export async function createEnquiry(req, res) {
     }
 
     console.log(`[EnquiryController] Enquiry email sent. ID: ${result.data?.id}`);
+
+    // Send Telegram notification (non-blocking)
+    try {
+      await sendTelegramEnquiryNotification({
+        name,
+        phone,
+        email,
+        subject,
+        message,
+        enquiryId: result.data?.id,
+      });
+    } catch (telegramError) {
+      console.error('[EnquiryController] Telegram notification error:', telegramError.message);
+    }
 
     return res.status(200).json({
       success: true,
